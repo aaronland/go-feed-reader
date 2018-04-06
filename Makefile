@@ -33,4 +33,4 @@ fmt:
 	go fmt *.go
 
 bin: 	self
-	@GOPATH=$(GOPATH) go build -o bin/feed cmd/feed.go
+	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/feed cmd/feed.go

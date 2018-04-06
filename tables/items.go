@@ -52,7 +52,7 @@ func (t *ItemsTable) Schema() string {
 		link TEXT NOT NULL,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
-		body TEXT NOT NULL
+		body JSON NOT NULL
 	);`
 
 	// lastmodified INTEGER

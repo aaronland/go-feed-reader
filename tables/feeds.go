@@ -1,7 +1,7 @@
 package tables
 
 import (
-	_ "encoding/json"
+	"encoding/json"
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
@@ -49,7 +49,7 @@ func (t *FeedsTable) Schema() string {
 		title TEXT NOT NULL,
 		author TEXT,
 		link TEXT NOT NULL PRIMARY KEY,
-		body TEXT NOT NULL,
+		body JSON NOT NULL,
 		lastmodified INTEGER
 	);`
 
@@ -67,15 +67,13 @@ func (t *FeedsTable) IndexRecord(db sqlite.Database, i interface{}) error {
 
 func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
-     	/*
 	body, err := json.Marshal(f)
 
 	if err != nil {
 		return err
 	}
-	*/
 
-	body := ""
+	str_body := string(body)
 
 	conn, err := db.Conn()
 
@@ -99,7 +97,7 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(f.Title, f.Author, f.Link, body, f.Updated)
+	_, err = stmt.Exec(f.Title, f.Author, f.Link, str_body, f.Updated)
 
 	if err != nil {
 		return err
