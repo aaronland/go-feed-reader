@@ -13,6 +13,13 @@ type ItemsTable struct {
 	name string
 }
 
+// I don't like this...
+
+type ItemsRecord struct {
+	Feed *gofeed.Feed
+	Item *gofeed.Item
+}
+
 func NewItemsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
 
 	t, err := NewItemsTable()
@@ -33,7 +40,7 @@ func NewItemsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
 func NewItemsTable() (sqlite.Table, error) {
 
 	t := ItemsTable{
-		name: "feeds",
+		name: "items",
 	}
 
 	return &t, nil
@@ -45,17 +52,14 @@ func (t *ItemsTable) Name() string {
 
 func (t *ItemsTable) Schema() string {
 
-	// feed TEXT NOT NULL,
-
 	sql := `CREATE TABLE %s (
+	    	feed TEXT NOT NULL,
 		guid TEXT NOT NULL PRIMARY KEY,
 		link TEXT NOT NULL,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
 		body JSON NOT NULL
 	);`
-
-	// lastmodified INTEGER
 
 	return fmt.Sprintf(sql, t.Name())
 }
@@ -66,10 +70,11 @@ func (t *ItemsTable) InitializeTable(db sqlite.Database) error {
 }
 
 func (t *ItemsTable) IndexRecord(db sqlite.Database, i interface{}) error {
-	return t.IndexItem(db, i.(*gofeed.Item))
+	rec := i.(*ItemsRecord) // I don't like this...
+	return t.IndexItem(db, rec.Feed, rec.Item)
 }
 
-func (t *ItemsTable) IndexItem(db sqlite.Database, i *gofeed.Item) error {
+func (t *ItemsTable) IndexItem(db sqlite.Database, f *gofeed.Feed, i *gofeed.Item) error {
 
 	b, err := json.Marshal(i)
 
@@ -88,9 +93,9 @@ func (t *ItemsTable) IndexItem(db sqlite.Database, i *gofeed.Item) error {
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		guid, link, title, description, body
+		feed, guid, link, title, description, body
 	) VALUES (
-	  	 ?, ?, ?, ?, ?
+	  	 ?, ?, ?, ?, ?, ?
 	)`, t.Name())
 
 	stmt, err := tx.Prepare(sql)
@@ -101,7 +106,7 @@ func (t *ItemsTable) IndexItem(db sqlite.Database, i *gofeed.Item) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(i.GUID, i.Link, i.Title, i.Description, body)
+	_, err = stmt.Exec(f.Link, i.GUID, i.Link, i.Title, i.Description, body)
 
 	if err != nil {
 		return err

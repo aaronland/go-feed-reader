@@ -11,7 +11,7 @@ func main() {
 
 	var dsn = flag.String("dsn", ":memory:", "")
 	var feed_url = flag.String("feed", "", "")
-	
+
 	flag.Parse()
 
 	fr, err := reader.NewFeedReader(*dsn)

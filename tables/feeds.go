@@ -97,7 +97,7 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(f.Title, f.Author, f.Link, str_body, f.Updated)
+	_, err = stmt.Exec(f.Title, f.Author.Name, f.Link, str_body, f.Updated)
 
 	if err != nil {
 		return err

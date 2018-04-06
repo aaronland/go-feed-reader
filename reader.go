@@ -127,7 +127,6 @@ func (fr *FeedReader) UpdateFeeds(feeds []*gofeed.Feed) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
 	return nil
@@ -141,7 +140,7 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 
 func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
 
-     	return fr.ParseFeedURL(feed.FeedLink)
+	return fr.ParseFeedURL(feed.FeedLink)
 }
 
 func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
@@ -152,9 +151,14 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 		return err
 	}
 
-	for _, i := range feed.Items {
+	for _, item := range feed.Items {
 
-		err = fr.items.IndexRecord(fr.database, i)
+		rec := tables.ItemsRecord{
+			Feed: feed,
+			Item: item,
+		}
+
+		err = fr.items.IndexRecord(fr.database, &rec)
 
 		if err != nil {
 			return err
