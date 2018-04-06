@@ -7,6 +7,7 @@ prep:
 self:   prep rmdeps
 	if test -d src; then rm -rf src; fi
 	mkdir -p src/github.com/aaronland/go-feed-reader
+	cp -r http src/github.com/aaronland/go-feed-reader/
 	cp -r tables src/github.com/aaronland/go-feed-reader/
 	cp *.go src/github.com/aaronland/go-feed-reader/
 	cp -r vendor/* src/
@@ -30,6 +31,7 @@ vendor-deps: rmdeps deps
 fmt:
 	go fmt cmd/*.go
 	go fmt tables/*.go
+	go fmt http/*.go
 	go fmt *.go
 
 bin: 	self
