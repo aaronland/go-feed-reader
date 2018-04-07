@@ -3,8 +3,8 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/arschles/go-bindata-html-template"	
 	"github.com/mmcdole/gofeed"
-	"html/template"
 	gohttp "net/http"
 )
 
@@ -14,13 +14,13 @@ type FeedVars struct {
 
 func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
-	tpl, err := html.Asset("templates/html/feeds.html")
-
-	if err != nil {
-		return nil, err
+	files := []string{
+		"templates/html/inc_head.html",		
+		"templates/html/inc_feeds.html",
+		"templates/html/inc_foot.html",
 	}
 
-	t, err := template.New("feeds").Parse(string(tpl))
+	t, err := template.New("feeds", html.Asset).ParseFiles(files...)
 
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			Feeds: feeds,
 		}
 
-		err = t.ExecuteTemplate(rsp, "feeds", vars)
+		err = t.Execute(rsp, vars)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

@@ -2,6 +2,8 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
+	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/arschles/go-bindata-html-template"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-sanitize"
 	_ "log"
@@ -15,14 +17,27 @@ type ResultsVars struct {
 
 func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
-	t, err := CompileTemplates([]string{
-		"templates/html/inc_head.html",
+	query_files := []string{
+		"templates/html/inc_head.html",		
+		"templates/html/inc_search_form.html",
 		"templates/html/inc_foot.html",
-		"templates/html/inc_items.html",
-		"templates/html/inc_search_form.html",		
-		"templates/html/search_query.html",
-		"templates/html/search_results.html",
-	})
+	}
+
+	results_files := []string{
+		"templates/html/inc_head.html",
+		"templates/html/inc_search_form.html",
+		"templates/html/inc_search_results.html",		
+		"templates/html/inc_items.html",		
+		"templates/html/inc_foot.html",
+	}
+
+	query_t, err := template.New("query", html.Asset).ParseFiles(query_files...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	results_t, err := template.New("results", html.Asset).ParseFiles(results_files...)
 
 	if err != nil {
 		return nil, err
@@ -43,7 +58,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		if q == "" {
 
-			err := t.ExecuteTemplate(rsp, "search_query.html", "")
+			err := query_t.ExecuteTemplate(rsp, "query", "")
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
@@ -65,7 +80,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			Query: q,
 		}
 
-		err = t.ExecuteTemplate(rsp, "search_results.html", vars)
+		err = results_t.ExecuteTemplate(rsp, "results", vars)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

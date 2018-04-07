@@ -1,14 +1,5 @@
-<html>
-  <head>
-    <title>Feeds</title>
-  </head>
-  <body>
-
     <ul>
     {{ range $i, $f := .Feeds }}
     <li>{{ $f.Title }}</li>
     {{ end }}
     </ul>
-    
-  </body>
-</html>
