@@ -4,5 +4,11 @@
   </head>
   <body>
 
+    <ul>
+    {{ for $i, $f := range .Feeds }}
+    <li>{{ $f.Title }}</li>
+    {{ end }}
+    </ul>
+    
   </body>
 </html>

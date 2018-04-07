@@ -7,6 +7,7 @@ prep:
 self:   prep rmdeps
 	if test -d src; then rm -rf src; fi
 	mkdir -p src/github.com/aaronland/go-feed-reader
+	cp -r assets src/github.com/aaronland/go-feed-reader/
 	cp -r http src/github.com/aaronland/go-feed-reader/
 	cp -r tables src/github.com/aaronland/go-feed-reader/
 	cp *.go src/github.com/aaronland/go-feed-reader/
@@ -44,4 +45,5 @@ assets: self
 
 bin: 	self
 	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/feed cmd/feed.go
+	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/server cmd/server.go
 

@@ -56,6 +56,10 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
+func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
+	return nil, errors.New("Please write me")
+}
+
 func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 
 	conn, err := fr.database.Conn()
