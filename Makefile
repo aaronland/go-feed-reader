@@ -21,6 +21,7 @@ build:	fmt bin
 deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/zendesk/go-bindata/"
 	@GOPATH=$(GOPATH) go get -u "github.com/mmcdole/gofeed"
+	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-sanitize"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-sqlite"
 
 vendor-deps: rmdeps deps
@@ -47,6 +48,7 @@ bin: 	self
 	rm -rf bin/*
 	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/fr-dump cmd/fr-dump.go
 	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/fr-add cmd/fr-add.go
+	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/fr-search cmd/fr-search.go
 	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/fr-refresh cmd/fr-refresh.go
 	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/fr-server cmd/fr-server.go
 

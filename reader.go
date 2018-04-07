@@ -60,6 +60,77 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	return &fr, nil
 }
 
+func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// https://www.sqlite.org/fts5.html
+
+	sql := fmt.Sprintf("SELECT feed, guid FROM %s(?) ORDER BY rank", fr.search.Name())
+
+	rows, err := conn.Query(sql, q)
+
+	if err != nil {
+		return nil, err
+	}
+
+	guids := make([][]string, 0)
+
+	for rows.Next() {
+
+		var feed string
+		var guid string
+
+		err = rows.Scan(&feed, &guid)
+
+		if err != nil {
+			return nil, err
+		}
+
+		guids = append(guids, []string{feed, guid})
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*gofeed.Item, 0)
+
+	for _, g := range guids {
+
+		feed := g[0]
+		guid := g[1]
+
+		sql := fmt.Sprintf("SELECT body FROM %s WHERE feed = ? AND guid = ?", fr.items.Name())
+
+		row := conn.QueryRow(sql, feed, guid)
+
+		var body string
+		err := row.Scan(&body)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var item gofeed.Item
+		err = json.Unmarshal([]byte(body), &item)
+
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, &item)
+	}
+
+	return items, nil
+}
+
 func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
@@ -74,7 +145,7 @@ func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
 
 	// add "WHERE read=0" toggle
 
-	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published DESC, updated DESC", fr.items.Name())
+	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
 	rows, err := conn.Query(q)
 
@@ -121,7 +192,7 @@ func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published DESC, updated DESC", fr.feeds.Name())
+	q := fmt.Sprintf("SELECT body FROM %s ORDER BY updated ASC", fr.feeds.Name())
 
 	rows, err := conn.Query(q)
 
@@ -189,8 +260,8 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	feed.FeedLink = feed_url	// this shouldn't be necessary but... you know, is (20180407/thisisaaronland)
-	return feed, nil		      
+	feed.FeedLink = feed_url // this shouldn't be necessary but... you know, is (20180407/thisisaaronland)
+	return feed, nil
 }
 
 func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
@@ -200,9 +271,9 @@ func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
 
 func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 
-     	items := feed.Items
-	feed.Items = nil	      
-	
+	items := feed.Items
+	feed.Items = nil
+
 	err := fr.feeds.IndexRecord(fr.database, feed)
 
 	if err != nil {

@@ -1,9 +1,3 @@
-<html>
-  <head>
-    <title>Items</title>
-  </head>
-  <body>
-
     {{ range $i, $it := .Items }}
     <div class="item">
       <h2><a href="{{ $it.Link }}">{{ $it.Title }}</a> <small>{{ $it.Link }}</small></h2>
@@ -11,6 +5,3 @@
       <p>{{ $it.GUID }}, {{ $it.Published }}</p>
       </div>
     {{ end }}
-    
-  </body>
-</html>

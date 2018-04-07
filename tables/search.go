@@ -91,6 +91,20 @@ func (t *SearchTable) IndexItem(db sqlite.Database, f *gofeed.Feed, i *gofeed.It
 		return err
 	}
 
+	s, err := tx.Prepare(fmt.Sprintf("DELETE FROM %s WHERE feed = ? AND guid = ?", t.Name()))
+
+	if err != nil {
+		return err
+	}
+
+	defer s.Close()
+
+	_, err = s.Exec(f.Link, i.GUID)
+
+	if err != nil {
+		return err
+	}
+
 	stmt, err := tx.Prepare(sql)
 
 	if err != nil {

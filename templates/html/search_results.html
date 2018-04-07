@@ -1,9 +1,11 @@
 <html>
   <head>
-    <title>Items</title>
+    <title>Search</title>
   </head>
   <body>
 
+    <h1>Query results for <q>{{ .Query }}</q></h1>
+    
     {{ range $i, $it := .Items }}
     <div class="item">
       <h2><a href="{{ $it.Link }}">{{ $it.Title }}</a> <small>{{ $it.Link }}</small></h2>

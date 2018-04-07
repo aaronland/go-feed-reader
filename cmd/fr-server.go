@@ -37,9 +37,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	search_handler, err := http.SearchHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mux := gohttp.NewServeMux()
 
 	mux.Handle("/feeds", feeds_handler)
+	mux.Handle("/search", search_handler)	
 	mux.Handle("/", items_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
