@@ -44,7 +44,7 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
-	s, err := tables.NewItemsTableWithDatabase(db)
+	s, err := tables.NewSearchTableWithDatabase(db)
 
 	if err != nil {
 		return nil, err
@@ -160,26 +160,17 @@ func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 	return feeds, nil
 }
 
-func (fr *FeedReader) UpdateFeeds(feeds []*gofeed.Feed) error {
-
-	// please make me a generator or equivalent
-	// (20180405/thisisaaronland)
-
-	feeds, err := fr.ListFeeds()
-
-	if err != nil {
-		return err
-	}
+func (fr *FeedReader) RefreshFeeds(feeds []*gofeed.Feed) error {
 
 	for _, f := range feeds {
 
-		f, err = fr.RefreshFeed(f)
+		f2, err := fr.RefreshFeed(f)
 
 		if err != nil {
 			return err
 		}
 
-		err = fr.IndexFeed(f)
+		err = fr.IndexFeed(f2)
 
 		if err != nil {
 			return err
@@ -192,7 +183,14 @@ func (fr *FeedReader) UpdateFeeds(feeds []*gofeed.Feed) error {
 func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 
 	fp := gofeed.NewParser()
-	return fp.ParseURL(feed_url)
+	feed, err := fp.ParseURL(feed_url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	feed.FeedLink = feed_url	// this shouldn't be necessary but... you know, is (20180407/thisisaaronland)
+	return feed, nil		      
 }
 
 func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
@@ -202,13 +200,16 @@ func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
 
 func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 
+     	items := feed.Items
+	feed.Items = nil	      
+	
 	err := fr.feeds.IndexRecord(fr.database, feed)
 
 	if err != nil {
 		return err
 	}
 
-	for _, item := range feed.Items {
+	for _, item := range items {
 
 		rec := tables.ItemsRecord{
 			Feed: feed,
@@ -221,7 +222,7 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 			return err
 		}
 
-		err = fr.search.IndexRecord(fr.search, &rec)
+		err = fr.search.IndexRecord(fr.database, &rec)
 
 		if err != nil {
 			return err

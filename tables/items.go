@@ -69,7 +69,7 @@ func (t *ItemsTable) Schema() string {
 	CREATE UNIQUE INDEX %s_by_guid ON %s (feed, guid);
 	CREATE INDEX %s_by_published ON %s (published, updated);
 	CREATE INDEX %s_by_read ON %s (read, published, updated);	
-	CREATE INDEX %s_by_feed ON %s (feed_link, read, published, updated);
+	CREATE INDEX %s_by_feed ON %s (feed, published, updated);
 	`
 
 	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name())

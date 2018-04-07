@@ -40,7 +40,7 @@ func main() {
 	mux := gohttp.NewServeMux()
 
 	mux.Handle("/feeds", feeds_handler)
-	mux.Handle("/items", items_handler)
+	mux.Handle("/", items_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)

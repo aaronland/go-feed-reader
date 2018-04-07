@@ -2,10 +2,12 @@ package tables
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
+	_ "log"
 	"time"
 )
 
@@ -48,8 +50,8 @@ func (t *FeedsTable) Schema() string {
 
 	sql := `CREATE TABLE %s (
 		title TEXT NOT NULL,
-		author TEXT,
 		link TEXT NOT NULL PRIMARY KEY,
+		feed_link TEXT NULL,		     
 		body JSON NOT NULL,
 		published INTEGER,		     
 		updated INTEGER
@@ -72,6 +74,14 @@ func (t *FeedsTable) IndexRecord(db sqlite.Database, i interface{}) error {
 
 func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
+	if f.Title == "" {
+		return errors.New("Unable to determine feed title")
+	}
+
+	if f.Link == "" {
+		return errors.New("Unable to determine feed link")
+	}
+
 	body, err := json.Marshal(f)
 
 	if err != nil {
@@ -89,7 +99,7 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		title, author, link, body, published, updated
+		title, link, feed_link, body, published, updated
 	) VALUES (
 	  	 ?, ?, ?, ?, ?, ?
 	)`, t.Name())
@@ -122,7 +132,7 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 		updated_ts = updated.Unix()
 	}
 
-	_, err = stmt.Exec(f.Title, f.Author.Name, f.Link, str_body, published_ts, updated_ts)
+	_, err = stmt.Exec(f.Title, f.Link, f.FeedLink, str_body, published_ts, updated_ts)
 
 	if err != nil {
 		return err

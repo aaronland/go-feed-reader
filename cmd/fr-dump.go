@@ -4,13 +4,12 @@ import (
 	"flag"
 	"github.com/aaronland/go-feed-reader"
 	"log"
-	_ "net/http"
+	"os"
 )
 
 func main() {
 
 	var dsn = flag.String("dsn", ":memory:", "")
-	var feed_url = flag.String("feed", "", "")
 
 	flag.Parse()
 
@@ -20,17 +19,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	feed, err := fr.ParseFeedURL(*feed_url)
+	feeds, err := fr.ListFeeds()
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal()
 	}
 
-	err = fr.IndexFeed(feed)
-
-	if err != nil {
-		log.Fatal(err)
+	for _, f := range feeds {
+		os.Stdout.Write([]byte(f.FeedLink + "\n"))
 	}
 
-	log.Println("OK")
+	os.Exit(0)
 }
