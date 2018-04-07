@@ -3,6 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/aaronland/go-feed-reader"
+	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/mmcdole/gofeed"
 	"html/template"
 	gohttp "net/http"
@@ -14,7 +15,13 @@ type HTMLVars struct {
 
 func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
-	t, err := template.New("feeds").Parse(``)
+     	tpl, err := html.Asset("templates/html/feeds.html")
+
+	if err != nil {
+		return nil, err
+	}
+
+	t, err := template.New("feeds").Parse(string(tpl))
 
 	if err != nil {
 		return nil, err

@@ -18,6 +18,7 @@ rmdeps:
 build:	fmt bin
 
 deps:
+	@GOPATH=$(GOPATH) go get -u "github.com/zendesk/go-bindata/"
 	@GOPATH=$(GOPATH) go get -u "github.com/mmcdole/gofeed"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-sqlite"
 
@@ -34,5 +35,13 @@ fmt:
 	go fmt http/*.go
 	go fmt *.go
 
+assets: self
+	@GOPATH=$(GOPATH) go build -o bin/go-bindata ./vendor/github.com/zendesk/go-bindata/go-bindata/
+	rm -rf templates/*/*~
+	rm -rf assets
+	mkdir -p assets/html
+	@GOPATH=$(GOPATH) bin/go-bindata -pkg html -o assets/html/html.go templates/html
+
 bin: 	self
 	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/feed cmd/feed.go
+
