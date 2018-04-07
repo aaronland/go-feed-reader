@@ -6,6 +6,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
+	"time"
 )
 
 type FeedsTable struct {
@@ -50,10 +51,14 @@ func (t *FeedsTable) Schema() string {
 		author TEXT,
 		link TEXT NOT NULL PRIMARY KEY,
 		body JSON NOT NULL,
-		lastmodified INTEGER
-	);`
+		published INTEGER,		     
+		updated INTEGER
+	);
 
-	return fmt.Sprintf(sql, t.Name())
+	CREATE INDEX %s_by_published ON %s (published, updated);
+	`
+
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name())
 }
 
 func (t *FeedsTable) InitializeTable(db sqlite.Database) error {
@@ -84,9 +89,9 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		title, author, link, body, lastmodified
+		title, author, link, body, published, updated
 	) VALUES (
-	  	 ?, ?, ?, ?, ?
+	  	 ?, ?, ?, ?, ?, ?
 	)`, t.Name())
 
 	stmt, err := tx.Prepare(sql)
@@ -97,7 +102,27 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(f.Title, f.Author.Name, f.Link, str_body, f.Updated)
+	var published_ts int64
+	var updated_ts int64
+
+	published := f.PublishedParsed
+	updated := f.UpdatedParsed
+
+	if published == nil {
+		now := time.Now()
+		published_ts = now.Unix()
+	} else {
+		published_ts = published.Unix()
+	}
+
+	if updated == nil {
+		now := time.Now()
+		updated_ts = now.Unix()
+	} else {
+		updated_ts = updated.Unix()
+	}
+
+	_, err = stmt.Exec(f.Title, f.Author.Name, f.Link, str_body, published_ts, updated_ts)
 
 	if err != nil {
 		return err

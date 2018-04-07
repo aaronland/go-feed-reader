@@ -6,6 +6,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
+	"time"
 )
 
 type ItemsTable struct {
@@ -58,10 +59,16 @@ func (t *ItemsTable) Schema() string {
 		link TEXT NOT NULL,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
-		body JSON NOT NULL
-	);`
+		body JSON NOT NULL,
+		published INTEGER,
+		updated INTEGER			  
+	);
 
-	return fmt.Sprintf(sql, t.Name())
+	CREATE INDEX %s_by_published ON %s (published, updated);
+	CREATE INDEX %s_by_feed ON %s (feed_link, published, updated);
+	`
+
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name())
 }
 
 func (t *ItemsTable) InitializeTable(db sqlite.Database) error {
@@ -93,9 +100,9 @@ func (t *ItemsTable) IndexItem(db sqlite.Database, f *gofeed.Feed, i *gofeed.Ite
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		feed, guid, link, title, description, body
+		feed, guid, link, title, description, body, published, updated
 	) VALUES (
-	  	 ?, ?, ?, ?, ?, ?
+	  	 ?, ?, ?, ?, ?, ?, ?, ?
 	)`, t.Name())
 
 	stmt, err := tx.Prepare(sql)
@@ -106,7 +113,27 @@ func (t *ItemsTable) IndexItem(db sqlite.Database, f *gofeed.Feed, i *gofeed.Ite
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(f.Link, i.GUID, i.Link, i.Title, i.Description, body)
+	var published_ts int64
+	var updated_ts int64
+
+	published := f.PublishedParsed
+	updated := f.UpdatedParsed
+
+	if published == nil {
+		now := time.Now()
+		published_ts = now.Unix()
+	} else {
+		published_ts = published.Unix()
+	}
+
+	if updated == nil {
+		now := time.Now()
+		updated_ts = now.Unix()
+	} else {
+		updated_ts = updated.Unix()
+	}
+
+	_, err = stmt.Exec(f.Link, i.GUID, i.Link, i.Title, i.Description, body, published_ts, updated_ts)
 
 	if err != nil {
 		return err
