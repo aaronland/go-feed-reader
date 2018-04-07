@@ -3,7 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
-	"github.com/arschles/go-bindata-html-template"		
+	"github.com/arschles/go-bindata-html-template"
 	"github.com/mmcdole/gofeed"
 	gohttp "net/http"
 )
@@ -15,7 +15,7 @@ type ItemsVars struct {
 func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	files := []string{
-		"templates/html/inc_head.html",		
+		"templates/html/inc_head.html",
 		"templates/html/inc_items.html",
 		"templates/html/inc_foot.html",
 	}

@@ -18,7 +18,7 @@ type ResultsVars struct {
 func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	query_files := []string{
-		"templates/html/inc_head.html",		
+		"templates/html/inc_head.html",
 		"templates/html/inc_search_form.html",
 		"templates/html/inc_foot.html",
 	}
@@ -26,8 +26,8 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	results_files := []string{
 		"templates/html/inc_head.html",
 		"templates/html/inc_search_form.html",
-		"templates/html/inc_search_results.html",		
-		"templates/html/inc_items.html",		
+		"templates/html/inc_search_results.html",
+		"templates/html/inc_items.html",
 		"templates/html/inc_foot.html",
 	}
 
