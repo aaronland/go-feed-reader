@@ -4,9 +4,9 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/mmcdole/gofeed"
-	"github.com/whosonfirst/go-sanitize"	
+	"github.com/whosonfirst/go-sanitize"
 	"html/template"
-	_ "log"		
+	_ "log"
 	gohttp "net/http"
 )
 

@@ -110,22 +110,13 @@ func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
 		sql := fmt.Sprintf("SELECT body FROM %s WHERE feed = ? AND guid = ?", fr.items.Name())
 
 		row := conn.QueryRow(sql, feed, guid)
-
-		var body string
-		err := row.Scan(&body)
+		item, err := DatabaseRowToFeedItem(row)
 
 		if err != nil {
 			return nil, err
 		}
 
-		var item gofeed.Item
-		err = json.Unmarshal([]byte(body), &item)
-
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, &item)
+		items = append(items, item)
 	}
 
 	return items, nil
@@ -153,29 +144,7 @@ func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
 		return nil, err
 	}
 
-	items := make([]*gofeed.Item, 0)
-
-	for rows.Next() {
-
-		var body string
-		err = rows.Scan(&body)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var f gofeed.Item
-
-		err := json.Unmarshal([]byte(body), &f)
-
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, &f)
-	}
-
-	err = rows.Err()
+	items, err := DatabaseRowsToFeedItems(rows)
 
 	if err != nil {
 		return nil, err
