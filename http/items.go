@@ -20,7 +20,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		return nil, err
 	}
 
-	t, err := template.New("feeds").Parse(string(tpl))
+	t, err := template.New("items").Parse(string(tpl))
 
 	if err != nil {
 		return nil, err

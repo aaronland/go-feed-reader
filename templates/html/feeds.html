@@ -5,7 +5,7 @@
   <body>
 
     <ul>
-    {{ for $i, $f := range .Feeds }}
+    {{ range $i, $f := .Feeds }}
     <li>{{ $f.Title }}</li>
     {{ end }}
     </ul>

@@ -31,11 +31,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	items_handler, err := http.ItemsHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	mux := gohttp.NewServeMux()
 
 	mux.Handle("/feeds", feeds_handler)
+	mux.Handle("/items", items_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
+	log.Printf("Listening on %s\n", endpoint)
 
 	err = gohttp.ListenAndServe(endpoint, mux)
 

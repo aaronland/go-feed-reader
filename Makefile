@@ -44,6 +44,6 @@ assets: self
 	@GOPATH=$(GOPATH) bin/go-bindata -pkg html -o assets/html/html.go templates/html
 
 bin: 	self
-	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/feed cmd/feed.go
-	@GOPATH=$(GOPATH) go build --tags "json1" -o bin/server cmd/server.go
+	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/feed cmd/feed.go
+	@GOPATH=$(GOPATH) go build --tags "json1 fts5" -o bin/server cmd/server.go
 

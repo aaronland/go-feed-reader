@@ -55,20 +55,24 @@ func (t *ItemsTable) Schema() string {
 
 	sql := `CREATE TABLE %s (
 	    	feed TEXT NOT NULL,
-		guid TEXT NOT NULL PRIMARY KEY,
+		guid TEXT NOT NULL,
 		link TEXT NOT NULL,
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
 		body JSON NOT NULL,
 		published INTEGER,
-		updated INTEGER			  
+		updated INTEGER,
+		read INTEGER,
+		saved INTEGER
 	);
 
+	CREATE UNIQUE INDEX %s_by_guid ON %s (feed, guid);
 	CREATE INDEX %s_by_published ON %s (published, updated);
-	CREATE INDEX %s_by_feed ON %s (feed_link, published, updated);
+	CREATE INDEX %s_by_read ON %s (read, published, updated);	
+	CREATE INDEX %s_by_feed ON %s (feed_link, read, published, updated);
 	`
 
-	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name())
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name(), t.Name())
 }
 
 func (t *ItemsTable) InitializeTable(db sqlite.Database) error {

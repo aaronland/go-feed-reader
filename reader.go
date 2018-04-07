@@ -15,6 +15,7 @@ type FeedReader struct {
 	database *database.SQLiteDatabase
 	feeds    sqlite.Table
 	items    sqlite.Table
+	search   sqlite.Table
 }
 
 func NewFeedReader(dsn string) (*FeedReader, error) {
@@ -43,10 +44,17 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
+	s, err := tables.NewItemsTableWithDatabase(db)
+
+	if err != nil {
+		return nil, err
+	}
+
 	fr := FeedReader{
 		database: db,
 		feeds:    f,
 		items:    i,
+		search:   s,
 	}
 
 	return &fr, nil
@@ -57,7 +65,52 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 }
 
 func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
-	return nil, errors.New("Please write me")
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// add "WHERE read=0" toggle
+
+	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published DESC, updated DESC", fr.items.Name())
+
+	rows, err := conn.Query(q)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*gofeed.Item, 0)
+
+	for rows.Next() {
+
+		var body string
+		err = rows.Scan(&body)
+
+		if err != nil {
+			return nil, err
+		}
+
+		var f gofeed.Item
+
+		err := json.Unmarshal([]byte(body), &f)
+
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, &f)
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }
 
 func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
@@ -68,7 +121,7 @@ func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s", fr.feeds.Name())
+	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published DESC, updated DESC", fr.feeds.Name())
 
 	rows, err := conn.Query(q)
 
@@ -163,6 +216,12 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 		}
 
 		err = fr.items.IndexRecord(fr.database, &rec)
+
+		if err != nil {
+			return err
+		}
+
+		err = fr.search.IndexRecord(fr.search, &rec)
 
 		if err != nil {
 			return err
