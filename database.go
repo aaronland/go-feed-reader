@@ -8,17 +8,37 @@ package reader
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	_ "log"		
 	"strings"
 )
 
-type Paginated struct {
-	Rows       *sql.Rows
-	TotalCount int
+type PaginationOptions struct {
+     PerPage int
+     Page int
+     Column string
 }
 
-func QueryPaginated(db *sql.DB, query string, args ...interface{}) (*Paginated, error) {
+type PaginatedRows struct {
+	Rows       *sql.Rows
+	Total int
+     	PerPage int
+     	Page int
+	Pages int	     
+}
+
+func DefaultPaginationOptions() *PaginationOptions {
+
+     opts := PaginationOptions {
+     	  PerPage: 10,
+     	  Page: 1,
+	  Column: "*",
+     }
+
+     return &opts
+}
+
+func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...interface{}) (*PaginatedRows, error) {
 
 	done_ch := make(chan bool)
 	err_ch := make(chan error)
@@ -32,12 +52,9 @@ func QueryPaginated(db *sql.DB, query string, args ...interface{}) (*Paginated, 
 		}()
 
 		parts := strings.Split(query, " FROM ")
-		parts = strings.Split(parts[1], " LIMIT ")
+		conditions := parts[1]
 
-		conditions := parts[0]
-
-		count_query := fmt.Sprintf("SELECT COUNT(*) FROM %s", conditions)
-
+		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column, conditions)
 		row := db.QueryRow(count_query)
 
 		var count int
@@ -57,6 +74,14 @@ func QueryPaginated(db *sql.DB, query string, args ...interface{}) (*Paginated, 
 			done_ch <- true
 		}()
 
+		offset := 0
+		limit := opts.PerPage
+
+		if opts.Page > 1 {
+			offset = (opts.Page - 1) * opts.PerPage
+		}
+		
+		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)		
 		rows, err := db.Query(query, args...)
 
 		if err != nil {
@@ -88,10 +113,15 @@ func QueryPaginated(db *sql.DB, query string, args ...interface{}) (*Paginated, 
 		}
 	}
 
-	pg := Paginated{
-		TotalCount: total_count,
+	pages := 0	// FIX ME
+	
+	pg := PaginatedRows{
+		Total: total_count,
+		PerPage: opts.PerPage,
+		Page: opts.Page,
+		Pages: pages,
 		Rows:       rows,
 	}
 
-	return &pg, errors.New("Please finish me")
+	return &pg, nil
 }
