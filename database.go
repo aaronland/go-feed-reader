@@ -9,41 +9,119 @@ package reader
 import (
 	"database/sql"
 	"fmt"
-	_ "log"		
+	"log"
+	"math"
 	"strings"
 )
 
-type PaginationOptions struct {
-     PerPage int
-     Page int
-     Column string
+type PaginationResponse interface {
+	Rows() *sql.Rows
+	Pagination() Pagination
 }
 
-type PaginatedRows struct {
-	Rows       *sql.Rows
-	Total int
-     	PerPage int
-     	Page int
-	Pages int	     
+type DefaultPaginationResponse struct {
+	rows       *sql.Rows
+	pagination Pagination
 }
 
-func DefaultPaginationOptions() *PaginationOptions {
-
-     opts := PaginationOptions {
-     	  PerPage: 10,
-     	  Page: 1,
-	  Column: "*",
-     }
-
-     return &opts
+func (r *DefaultPaginationResponse) Rows() *sql.Rows {
+	return r.rows
 }
 
-func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...interface{}) (*PaginatedRows, error) {
+func (r *DefaultPaginationResponse) Pagination() Pagination {
+	return r.pagination
+}
+
+//
+
+type Pagination interface {
+	Total() int
+	PerPage() int
+	Page() int
+	Pages() int
+}
+
+type DefaultPagination struct {
+	Pagination
+	total    int
+	per_page int
+	page     int
+	pages    int
+}
+
+func (p *DefaultPagination) Total() int {
+	return p.total
+}
+
+func (p *DefaultPagination) PerPage() int {
+	return p.per_page
+}
+
+func (p *DefaultPagination) Page() int {
+	return p.page
+}
+
+func (p *DefaultPagination) Pages() int {
+	return p.pages
+}
+
+//
+
+type PaginationOptions interface {
+	PerPage() int
+	Page() int
+	Spill() int
+	Column() string
+}
+
+type DefaultPaginationOptions struct {
+	PaginationOptions
+	per_page int
+	page     int
+	spill    int
+	column   string
+}
+
+func (o *DefaultPaginationOptions) PerPage() int {
+	return o.per_page
+}
+
+func (o *DefaultPaginationOptions) Page() int {
+	return o.page
+}
+
+func (o *DefaultPaginationOptions) Spill() int {
+	return o.spill
+}
+
+func (o *DefaultPaginationOptions) Column() string {
+	return o.column
+}
+
+func NewDefaultPaginationOptions() PaginationOptions {
+
+	opts := DefaultPaginationOptions{
+		per_page: 10,
+		page:     1,
+		spill:    2,
+		column:   "*",
+	}
+
+	return &opts
+}
+
+//
+
+func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...interface{}) (PaginationResponse, error) {
 
 	done_ch := make(chan bool)
 	err_ch := make(chan error)
 	count_ch := make(chan int)
 	rows_ch := make(chan *sql.Rows)
+
+	var page int
+	var per_page int
+	var spill int
 
 	go func() {
 
@@ -54,7 +132,9 @@ func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...i
 		parts := strings.Split(query, " FROM ")
 		conditions := parts[1]
 
-		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column, conditions)
+		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)
+
+		log.Println("COUNT", count_query)
 		row := db.QueryRow(count_query)
 
 		var count int
@@ -65,6 +145,7 @@ func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...i
 			return
 		}
 
+		log.Println("COUNT", count)
 		count_ch <- count
 	}()
 
@@ -74,14 +155,25 @@ func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...i
 			done_ch <- true
 		}()
 
-		offset := 0
-		limit := opts.PerPage
+		// please make fewer ((((())))) s
+		// (20180409/thisisaaronland)
 
-		if opts.Page > 1 {
-			offset = (opts.Page - 1) * opts.PerPage
+		page = int(math.Max(1.0, float64(opts.Page())))
+		per_page = int(math.Max(1.0, float64(opts.PerPage())))
+		spill = int(math.Max(1.0, float64(opts.Spill())))
+
+		if spill >= per_page {
+			spill = per_page - 1
 		}
-		
-		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)		
+
+		offset := 0
+		limit := per_page
+
+		offset = (page - 1) * per_page
+
+		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
+		log.Println("QUERY", query)
+
 		rows, err := db.Query(query, args...)
 
 		if err != nil {
@@ -113,15 +205,20 @@ func QueryPaginated(db *sql.DB, opts *PaginationOptions, query string, args ...i
 		}
 	}
 
-	pages := 0	// FIX ME
-	
-	pg := PaginatedRows{
-		Total: total_count,
-		PerPage: opts.PerPage,
-		Page: opts.Page,
-		Pages: pages,
-		Rows:       rows,
+	pages := int(math.Ceil(float64(total_count) / float64(per_page)))
+	log.Println("PAGES", pages)
+
+	pg := DefaultPagination{
+		total:    total_count,
+		per_page: per_page,
+		page:     page,
+		pages:    pages,
 	}
 
-	return &pg, nil
+	rsp := DefaultPaginationResponse{
+		pagination: &pg,
+		rows:       rows,
+	}
+
+	return &rsp, nil
 }

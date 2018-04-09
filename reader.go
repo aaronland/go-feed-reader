@@ -138,24 +138,23 @@ func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
 
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
+	opts := NewDefaultPaginationOptions()
+
+	rsp, err := QueryPaginated(conn, opts, q)
+
+	if err != nil {
+		return nil, err
+	}
+
 	/*
-	opts := DefaultPaginationOptions()
-	opts.Column = "guid"
+		rows, err := conn.Query(q)
 
-	rsp, err = QueryPaginated(conn, opts, q)
-
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 	*/
-	
-	rows, err := conn.Query(q)
 
-	if err != nil {
-		return nil, err
-	}
-
-	items, err := DatabaseRowsToFeedItems(rows)
+	items, err := DatabaseRowsToFeedItems(rsp.Rows())
 
 	if err != nil {
 		return nil, err
