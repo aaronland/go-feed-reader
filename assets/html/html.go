@@ -4,6 +4,7 @@
 // templates/html/inc_foot.html
 // templates/html/inc_head.html
 // templates/html/inc_items.html
+// templates/html/inc_pagination.html
 // templates/html/inc_search_form.html
 // templates/html/inc_search_results.html
 // DO NOT EDIT!
@@ -88,7 +89,7 @@ func templatesHtmlInc_feedsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_feeds.html", size: 94, mode: os.FileMode(420), modTime: time.Unix(1523136606, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_feeds.html", size: 94, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -108,7 +109,7 @@ func templatesHtmlInc_footHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_foot.html", size: 48, mode: os.FileMode(420), modTime: time.Unix(1523136820, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_foot.html", size: 48, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -128,7 +129,7 @@ func templatesHtmlInc_headHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_head.html", size: 305, mode: os.FileMode(420), modTime: time.Unix(1523136877, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_head.html", size: 305, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -153,6 +154,26 @@ func templatesHtmlInc_itemsHtml() (*asset, error) {
 	return a, nil
 }
 
+var _templatesHtmlInc_paginationHtml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\xb2\x49\xc9\x2c\x53\xc8\x4c\xb1\x55\x2a\x48\x4c\xcf\xcc\x4b\x2c\xc9\xcc\xcf\x53\xb2\xe3\xb2\xd1\x4f\xc9\x2c\xb3\xe3\x02\x04\x00\x00\xff\xff\xe0\x3c\x40\xd6\x1d\x00\x00\x00")
+
+func templatesHtmlInc_paginationHtmlBytes() ([]byte, error) {
+	return bindataRead(
+		_templatesHtmlInc_paginationHtml,
+		"templates/html/inc_pagination.html",
+	)
+}
+
+func templatesHtmlInc_paginationHtml() (*asset, error) {
+	bytes, err := templatesHtmlInc_paginationHtmlBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	info := bindataFileInfo{name: "templates/html/inc_pagination.html", size: 29, mode: os.FileMode(420), modTime: time.Unix(1523284545, 0)}
+	a := &asset{bytes: bytes, info: info}
+	return a, nil
+}
+
 var _templatesHtmlInc_search_formHtml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x3c\x8e\x4d\x0a\x83\x30\x14\x84\xf7\x3d\xc5\xf0\x2e\xe0\x05\x12\x77\x3d\x41\x4f\x10\x75\xda\x04\xcc\x8f\xcf\x17\xa8\xb7\x2f\x68\x71\x35\x03\x33\x7c\x7c\x0f\x00\x70\xef\xaa\x79\x3c\x2b\xe0\x52\x69\xdd\x60\x47\xa3\x17\xe3\xd7\x04\x25\x64\x7a\xd9\x04\x69\x39\xa3\xad\x61\x66\xac\xeb\x42\xf5\xf2\x2c\x46\xc5\xd6\xa9\x07\x76\xd3\x54\x3e\x88\x54\x0a\x86\x9b\x38\x75\xb3\x5a\xfe\xc8\xbd\x4f\x39\x99\x8c\x2f\x06\x9d\xa3\x1b\xae\xf1\xfe\x0e\x97\xcb\x2f\x00\x00\xff\xff\x98\x09\x6c\xbe\x98\x00\x00\x00")
 
 func templatesHtmlInc_search_formHtmlBytes() ([]byte, error) {
@@ -168,7 +189,7 @@ func templatesHtmlInc_search_formHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_search_form.html", size: 152, mode: os.FileMode(420), modTime: time.Unix(1523133789, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_search_form.html", size: 152, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -188,7 +209,7 @@ func templatesHtmlInc_search_resultsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_search_results.html", size: 51, mode: os.FileMode(420), modTime: time.Unix(1523136388, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_search_results.html", size: 51, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -249,6 +270,7 @@ var _bindata = map[string]func() (*asset, error){
 	"templates/html/inc_foot.html": templatesHtmlInc_footHtml,
 	"templates/html/inc_head.html": templatesHtmlInc_headHtml,
 	"templates/html/inc_items.html": templatesHtmlInc_itemsHtml,
+	"templates/html/inc_pagination.html": templatesHtmlInc_paginationHtml,
 	"templates/html/inc_search_form.html": templatesHtmlInc_search_formHtml,
 	"templates/html/inc_search_results.html": templatesHtmlInc_search_resultsHtml,
 }
@@ -299,6 +321,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 			"inc_foot.html": &bintree{templatesHtmlInc_footHtml, map[string]*bintree{}},
 			"inc_head.html": &bintree{templatesHtmlInc_headHtml, map[string]*bintree{}},
 			"inc_items.html": &bintree{templatesHtmlInc_itemsHtml, map[string]*bintree{}},
+			"inc_pagination.html": &bintree{templatesHtmlInc_paginationHtml, map[string]*bintree{}},
 			"inc_search_form.html": &bintree{templatesHtmlInc_search_formHtml, map[string]*bintree{}},
 			"inc_search_results.html": &bintree{templatesHtmlInc_search_resultsHtml, map[string]*bintree{}},
 		}},

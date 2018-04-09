@@ -9,7 +9,8 @@ import (
 )
 
 type ItemsVars struct {
-	Items []*gofeed.Item
+	Items      []*gofeed.Item
+	Pagination reader.Pagination
 }
 
 func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -17,6 +18,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	files := []string{
 		"templates/html/inc_head.html",
 		"templates/html/inc_items.html",
+		"templates/html/inc_pagination.html",		
 		"templates/html/inc_foot.html",
 	}
 
@@ -28,7 +30,28 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		items, err := fr.ListItems()
+		/*
+		
+		query := rsp.URL.Query()
+		str_page := query.Get("page")
+
+		if str_page != "" {
+
+			page, err := strconv.Atoi(str_page)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+				return
+			}
+
+			opts.page = page
+		}
+		
+		*/
+		
+		opts := reader.NewDefaultPaginationOptions()
+
+		q_rsp, err := fr.ListItems(opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
@@ -36,7 +59,8 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		vars := ItemsVars{
-			Items: items,
+			Items:      q_rsp.Items,
+			Pagination: q_rsp.Pagination,
 		}
 
 		err = t.Execute(rsp, vars)

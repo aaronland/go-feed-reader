@@ -9,7 +9,7 @@ package reader
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	_ "log"
 	"math"
 	"strings"
 )
@@ -133,8 +133,8 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 		conditions := parts[1]
 
 		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)
-
-		log.Println("COUNT", count_query)
+		// log.Println("COUNT", count_query)
+		
 		row := db.QueryRow(count_query)
 
 		var count int
@@ -145,7 +145,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 			return
 		}
 
-		log.Println("COUNT", count)
+		// log.Println("COUNT", count)
 		count_ch <- count
 	}()
 
@@ -172,7 +172,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 		offset = (page - 1) * per_page
 
 		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-		log.Println("QUERY", query)
+		// log.Println("QUERY", query)
 
 		rows, err := db.Query(query, args...)
 
@@ -206,7 +206,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 	}
 
 	pages := int(math.Ceil(float64(total_count) / float64(per_page)))
-	log.Println("PAGES", pages)
+	// log.Println("PAGES", pages)
 
 	pg := DefaultPagination{
 		total:    total_count,

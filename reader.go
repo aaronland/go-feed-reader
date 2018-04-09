@@ -18,6 +18,11 @@ type FeedReader struct {
 	search   sqlite.Table
 }
 
+type ItemsResponse struct {
+	Items      []*gofeed.Item
+	Pagination Pagination
+}
+
 func NewFeedReader(dsn string) (*FeedReader, error) {
 
 	db, err := database.NewDBWithDriver("sqlite3", dsn)
@@ -126,7 +131,7 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
-func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
+func (fr *FeedReader) ListItems(opts PaginationOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -138,21 +143,11 @@ func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
 
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
-	opts := NewDefaultPaginationOptions()
-
 	rsp, err := QueryPaginated(conn, opts, q)
 
 	if err != nil {
 		return nil, err
 	}
-
-	/*
-		rows, err := conn.Query(q)
-
-		if err != nil {
-			return nil, err
-		}
-	*/
 
 	items, err := DatabaseRowsToFeedItems(rsp.Rows())
 
@@ -160,7 +155,12 @@ func (fr *FeedReader) ListItems() ([]*gofeed.Item, error) {
 		return nil, err
 	}
 
-	return items, nil
+	r := ItemsResponse{
+		Items:      items,
+		Pagination: rsp.Pagination(),
+	}
+
+	return &r, nil
 }
 
 func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
