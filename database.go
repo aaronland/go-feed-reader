@@ -150,7 +150,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 
 		parts := strings.Split(query, " FROM ")
 		parts = strings.Split(parts[1], " LIMIT ")
-		
+
 		conditions := parts[0]
 
 		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)

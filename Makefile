@@ -24,6 +24,8 @@ deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/mmcdole/gofeed"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-sanitize"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-sqlite"
+	@GOPATH=$(GOPATH) go get -u "github.com/grokify/html-strip-tags-go"
+	rm -rf src/github.com/zendesk/go-bindata/testdata
 
 vendor-deps: rmdeps deps
 	if test ! -d vendor; then mkdir vendor; fi

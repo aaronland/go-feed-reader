@@ -4,6 +4,7 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/arschles/go-bindata-html-template"
+	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-sanitize"
 	_ "log"
@@ -31,13 +32,17 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
+	results_funcs := template.FuncMap{
+		"strip_tags": strip.StripTags,
+	}
+
 	query_t, err := template.New("query", html.Asset).ParseFiles(query_files...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	results_t, err := template.New("results", html.Asset).ParseFiles(results_files...)
+	results_t, err := template.New("results", html.Asset).Funcs(results_funcs).ParseFiles(results_files...)
 
 	if err != nil {
 		return nil, err

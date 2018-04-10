@@ -1,7 +1,14 @@
     {{ range $i, $it := .Items }}
-    <div class="item">
-      <h2><a href="{{ $it.Link }}">{{ $it.Title }}</a> <small>{{ $it.Link }}</small></h2>
-      <p>{{ $it.Content }}</p>
-      <p>{{ $it.GUID }}, {{ $it.Published }}</p>
+    <div class="item" id="guid-{{ $it.GUID }}">
+      <h2><a href="{{ $it.Link }}">{{ $it.Title }}</a> <small>{{ $it.Published }}</small></h2>
+      <div>
+      {{ if $it.Description }}
+      {{ $it.Description | strip_tags }}
+      {{ else if $it.Content }}
+      {{ $it.Content| strip_tags }}
+      {{ else }}
+      {{ end }}
+      </div>
+      <p>{{ $it.Link }}</p>
       </div>
     {{ end }}

@@ -4,6 +4,7 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/arschles/go-bindata-html-template"
+	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	gohttp "net/http"
 	"strconv"
@@ -24,7 +25,11 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	t, err := template.New("items", html.Asset).ParseFiles(files...)
+	funcs := template.FuncMap{
+		"strip_tags": strip.StripTags,
+	}
+
+	t, err := template.New("items", html.Asset).Funcs(funcs).ParseFiles(files...)
 
 	if err != nil {
 		return nil, err
