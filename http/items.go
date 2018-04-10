@@ -6,9 +6,11 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/mmcdole/gofeed"
 	gohttp "net/http"
+	"strconv"
 )
 
 type ItemsVars struct {
+	PageTitle  string
 	Items      []*gofeed.Item
 	Pagination reader.Pagination
 }
@@ -18,7 +20,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	files := []string{
 		"templates/html/inc_head.html",
 		"templates/html/inc_items.html",
-		"templates/html/inc_pagination.html",		
+		"templates/html/inc_pagination.html",
 		"templates/html/inc_foot.html",
 	}
 
@@ -30,9 +32,9 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		/*
-		
-		query := rsp.URL.Query()
+		opts := reader.NewDefaultPaginationOptions()
+
+		query := req.URL.Query()
 		str_page := query.Get("page")
 
 		if str_page != "" {
@@ -44,12 +46,8 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
-			opts.page = page
+			opts.Page(page)
 		}
-		
-		*/
-		
-		opts := reader.NewDefaultPaginationOptions()
 
 		q_rsp, err := fr.ListItems(opts)
 
@@ -59,6 +57,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		vars := ItemsVars{
+			PageTitle:  "Recent items",
 			Items:      q_rsp.Items,
 			Pagination: q_rsp.Pagination,
 		}

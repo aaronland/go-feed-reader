@@ -9,7 +9,7 @@ package reader
 import (
 	"database/sql"
 	"fmt"
-	_ "log"
+	"log"
 	"math"
 	"strings"
 )
@@ -68,10 +68,10 @@ func (p *DefaultPagination) Pages() int {
 //
 
 type PaginationOptions interface {
-	PerPage() int
-	Page() int
-	Spill() int
-	Column() string
+	PerPage(...int) int
+	Page(...int) int
+	Spill(...int) int
+	Column(...string) string
 }
 
 type DefaultPaginationOptions struct {
@@ -82,19 +82,38 @@ type DefaultPaginationOptions struct {
 	column   string
 }
 
-func (o *DefaultPaginationOptions) PerPage() int {
+func (o *DefaultPaginationOptions) PerPage(args ...int) int {
+
+	if len(args) == 1 {
+		o.per_page = args[0]
+	}
 	return o.per_page
 }
 
-func (o *DefaultPaginationOptions) Page() int {
+func (o *DefaultPaginationOptions) Page(args ...int) int {
+
+	if len(args) == 1 {
+		o.page = args[0]
+	}
+
 	return o.page
 }
 
-func (o *DefaultPaginationOptions) Spill() int {
+func (o *DefaultPaginationOptions) Spill(args ...int) int {
+
+	if len(args) == 1 {
+		o.spill = args[0]
+	}
+
 	return o.spill
 }
 
-func (o *DefaultPaginationOptions) Column() string {
+func (o *DefaultPaginationOptions) Column(args ...string) string {
+
+	if len(args) == 1 {
+		o.column = args[0]
+	}
+
 	return o.column
 }
 
@@ -130,11 +149,13 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 		}()
 
 		parts := strings.Split(query, " FROM ")
-		conditions := parts[1]
+		parts = strings.Split(parts[1], " LIMIT ")
+		
+		conditions := parts[0]
 
 		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)
-		// log.Println("COUNT", count_query)
-		
+		log.Println("COUNT", count_query)
+
 		row := db.QueryRow(count_query)
 
 		var count int
@@ -145,7 +166,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 			return
 		}
 
-		// log.Println("COUNT", count)
+		log.Println("COUNT", count)
 		count_ch <- count
 	}()
 
@@ -172,7 +193,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 		offset = (page - 1) * per_page
 
 		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-		// log.Println("QUERY", query)
+		log.Println("QUERY", query)
 
 		rows, err := db.Query(query, args...)
 
@@ -206,7 +227,7 @@ func QueryPaginated(db *sql.DB, opts PaginationOptions, query string, args ...in
 	}
 
 	pages := int(math.Ceil(float64(total_count) / float64(per_page)))
-	// log.Println("PAGES", pages)
+	log.Println("PAGES", pages)
 
 	pg := DefaultPagination{
 		total:    total_count,
