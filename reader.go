@@ -10,6 +10,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
 	_ "log"
+	"sync"
 )
 
 type FeedReader struct {
@@ -17,6 +18,7 @@ type FeedReader struct {
 	feeds    sqlite.Table
 	items    sqlite.Table
 	search   sqlite.Table
+	mu       *sync.Mutex
 }
 
 type ItemsResponse struct {
@@ -56,14 +58,42 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
+	mu := new(sync.Mutex)
+
 	fr := FeedReader{
 		database: db,
 		feeds:    f,
 		items:    i,
 		search:   s,
+		mu:       mu,
 	}
 
 	return &fr, nil
+}
+
+func (fr *FeedReader) Refresh() error {
+
+	fr.mu.Lock()
+
+	defer func() {
+		fr.mu.Unlock()
+	}()
+
+	// check last update here...
+
+	feeds, err := fr.ListFeeds()
+
+	if err != nil {
+		return err
+	}
+
+	err = fr.RefreshFeeds(feeds)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {

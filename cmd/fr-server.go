@@ -26,6 +26,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go fr.Refresh()
+
 	feeds_handler, err := http.FeedsHandler(fr)
 
 	if err != nil {
@@ -51,22 +53,15 @@ func main() {
 		for {
 			select {
 			case <-ticker:
-			
-			     	log.Println("refresh feeds")
 
-				feeds, err := fr.ListFeeds()
+				log.Println("refresh feeds")
 
-				if err != nil {
-					log.Fatal(err)
-					return
-				}
-
-				err = fr.RefreshFeeds(feeds)
+				err := fr.Refresh()
 
 				if err != nil {
-					log.Fatal(err)
+					log.Println(err)
 				}
-				
+
 			default:
 				// pass
 			}
