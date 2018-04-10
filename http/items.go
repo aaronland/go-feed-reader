@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-sql-pagination"	
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
@@ -13,7 +14,7 @@ import (
 type ItemsVars struct {
 	PageTitle  string
 	Items      []*gofeed.Item
-	Pagination reader.Pagination
+	Pagination pagination.Pagination
 }
 
 func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -37,7 +38,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		opts := reader.NewDefaultPaginationOptions()
+		opts := pagination.NewDefaultPaginatedOptions()
 
 		query := req.URL.Query()
 		str_page := query.Get("page")

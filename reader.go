@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/tables"
+	"github.com/aaronland/go-sql-pagination"	
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
@@ -20,7 +21,7 @@ type FeedReader struct {
 
 type ItemsResponse struct {
 	Items      []*gofeed.Item
-	Pagination Pagination
+	Pagination pagination.Pagination
 }
 
 func NewFeedReader(dsn string) (*FeedReader, error) {
@@ -131,7 +132,7 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
-func (fr *FeedReader) ListItems(opts PaginationOptions) (*ItemsResponse, error) {
+func (fr *FeedReader) ListItems(opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -143,7 +144,7 @@ func (fr *FeedReader) ListItems(opts PaginationOptions) (*ItemsResponse, error) 
 
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
-	rsp, err := QueryPaginated(conn, opts, q)
+	rsp, err := pagination.QueryPaginated(conn, opts, q)
 
 	if err != nil {
 		return nil, err
