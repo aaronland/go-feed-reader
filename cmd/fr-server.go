@@ -8,6 +8,7 @@ import (
 	"log"
 	gohttp "net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -42,6 +43,36 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	go func() {
+
+		ticker := time.NewTicker(time.Minute * 1).C
+
+		for {
+			select {
+			case <-ticker:
+			
+			     	log.Println("refresh feeds")
+
+				feeds, err := fr.ListFeeds()
+
+				if err != nil {
+					log.Fatal(err)
+					return
+				}
+
+				err = fr.RefreshFeeds(feeds)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+				
+			default:
+				// pass
+			}
+		}
+
+	}()
 
 	mux := gohttp.NewServeMux()
 

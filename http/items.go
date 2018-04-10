@@ -3,7 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
-	"github.com/aaronland/go-sql-pagination"	
+	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"

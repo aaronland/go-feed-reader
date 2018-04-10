@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/tables"
-	"github.com/aaronland/go-sql-pagination"	
+	"github.com/aaronland/go-sql-pagination"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
