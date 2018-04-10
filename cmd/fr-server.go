@@ -40,6 +40,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	add_handler, err := http.AddHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	search_handler, err := http.SearchHandler(fr)
 
 	if err != nil {
@@ -73,6 +79,7 @@ func main() {
 
 	mux.Handle("/feeds", feeds_handler)
 	mux.Handle("/search", search_handler)
+	mux.Handle("/add", add_handler)	
 	mux.Handle("/", items_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)

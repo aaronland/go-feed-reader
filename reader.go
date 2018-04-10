@@ -71,6 +71,23 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	return &fr, nil
 }
 
+func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
+
+		feed, err := fr.ParseFeedURL(feed_url)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = fr.IndexFeed(feed)
+
+		if err != nil {
+		   	return nil, err
+		}
+
+		return feed, nil
+}
+
 func (fr *FeedReader) Refresh() error {
 
 	fr.mu.Lock()
