@@ -34,6 +34,7 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	post_files := []string{
 		"templates/html/inc_head.html",
+		"templates/html/inc_feed_form.html",		
 		"templates/html/inc_items.html",		
 		"templates/html/inc_foot.html",
 	}
@@ -148,9 +149,16 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return						  
 			}
 
+			crumb_var, err = crumb.GenerateCrumb(req)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return						  
+			}
+
 			vars := PostVars{
 			     	PageTitle: "",
-				Crumb: "OMGWTFFIXME",
+				Crumb: crumb_var,
 				Items: feed.Items,
 			}
 
