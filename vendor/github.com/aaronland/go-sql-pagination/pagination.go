@@ -25,6 +25,7 @@ type Pagination interface {
 	PerPage() int
 	Page() int
 	Pages() int
+	Range() []int
 }
 
 type DefaultPaginatedResponse struct {
@@ -46,6 +47,7 @@ type DefaultPagination struct {
 	per_page int
 	page     int
 	pages    int
+	pages_range 	 []int
 }
 
 func (p *DefaultPagination) Total() int {
@@ -62,6 +64,10 @@ func (p *DefaultPagination) Page() int {
 
 func (p *DefaultPagination) Pages() int {
 	return p.pages
+}
+
+func (p *DefaultPagination) Range() []int {
+	return p.pages_range
 }
 
 type DefaultPaginatedOptions struct {
@@ -217,11 +223,51 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 	pages := int(math.Ceil(float64(total_count) / float64(per_page)))
 	log.Println("PAGES", pages)
 
+	pages_range := make([]int, 0)
+
+	var range_min int
+	var range_max int
+	var range_mid int
+	
+	var rfloor int
+	var adjmin int	
+	var adjmax int
+	
+	if pages > 10 {
+
+	   range_mid = 7
+	   rfloor = int(math.Floor(float64(range_mid) / 2.0))
+
+	   range_min = page - rfloor
+	   range_max = page + rfloor
+
+	   if range_min <= 0 {
+
+	   	adjmin = int(math.Abs(float64(range_min)))
+
+		range_min = 1
+		range_max = page + adjmin + 1
+	   }
+
+	   if range_max >= pages {
+
+	   	adjmax = range_max - pages
+
+		range_min = range_min - adjmax
+		range_max = pages			  
+	   }
+
+	   for i := range_min; range_min <= range_max; range_min++ {
+	   	pages_range = append(pages_range, i)
+	   }
+	}	
+
 	pg := DefaultPagination{
 		total:    total_count,
 		per_page: per_page,
 		page:     page,
 		pages:    pages,
+		pages_range:	  pages_range,
 	}
 
 	rsp := DefaultPaginatedResponse{
