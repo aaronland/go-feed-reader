@@ -3,25 +3,25 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
-	"github.com/aaronland/go-feed-reader/crumb"	
+	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/arschles/go-bindata-html-template"
-	"github.com/whosonfirst/go-sanitize"
 	"github.com/grokify/html-strip-tags-go"
-	"github.com/mmcdole/gofeed"	
-	_ "log"		
+	"github.com/mmcdole/gofeed"
+	"github.com/whosonfirst/go-sanitize"
+	_ "log"
 	gohttp "net/http"
 	"net/url"
 )
 
 type FormVars struct {
-     	PageTitle string
-	Crumb string
+	PageTitle string
+	Crumb     string
 }
 
 type PostVars struct {
-     	PageTitle string
-	Crumb string
-	Items []*gofeed.Item
+	PageTitle string
+	Crumb     string
+	Items     []*gofeed.Item
 }
 
 func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -34,8 +34,8 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	post_files := []string{
 		"templates/html/inc_head.html",
-		"templates/html/inc_feed_form.html",		
-		"templates/html/inc_items.html",		
+		"templates/html/inc_feed_form.html",
+		"templates/html/inc_items.html",
 		"templates/html/inc_foot.html",
 	}
 
@@ -58,14 +58,14 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
 		/*
-		user, err := login.EnsureLogin(req)
+			user, err := login.EnsureLogin(req)
 
-		if err != nil {
-			gohttp.Error(rsp, err.Error(), gohttp.StatusForbidden)
-			return						  
-		}
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusForbidden)
+				return
+			}
 		*/
-		
+
 		switch req.Method {
 		case "GET":
 
@@ -73,100 +73,100 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
 
 			vars := FormVars{
-			     	PageTitle: "",
-				Crumb: crumb_var,
+				PageTitle: "",
+				Crumb:     crumb_var,
 			}
 
 			err = t_form.Execute(rsp, vars)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
-			
+
 			return
-			
+
 		case "POST":
 
 			raw_feed := req.PostFormValue("feed")
-			raw_crumb := req.PostFormValue("crumb")			
+			raw_crumb := req.PostFormValue("crumb")
 
 			opts := sanitize.DefaultOptions()
-			
+
 			feed_url, err := sanitize.SanitizeString(raw_feed, opts)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
-				return						  
+				return
 			}
 
 			crumb_var, err := sanitize.SanitizeString(raw_crumb, opts)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
-				return						  
+				return
 			}
 
 			if crumb_var == "" {
 				gohttp.Error(rsp, "Missing crumb", gohttp.StatusBadRequest)
-				return						  
+				return
 			}
 
 			ok, err := crumb.ValidateCrumb(crumb_var)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
 
 			if !ok {
 				gohttp.Error(rsp, "Invalid crumb", gohttp.StatusForbidden)
-				return						  
+				return
 			}
-			
+
 			if feed_url == "" {
 				gohttp.Error(rsp, "Missing feed", gohttp.StatusBadRequest)
-				return						  
+				return
 			}
 
 			_, err = url.Parse(feed_url)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
-				return						  
+				return
 			}
 
 			// feed, err := fr.AddFeedForUser(user, feed_url)
-			
+
 			feed, err := fr.AddFeed(feed_url)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
 
 			crumb_var, err = crumb.GenerateCrumb(req)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
 
 			vars := PostVars{
-			     	PageTitle: "",
-				Crumb: crumb_var,
-				Items: feed.Items,
+				PageTitle: "",
+				Crumb:     crumb_var,
+				Items:     feed.Items,
 			}
 
 			err = p_form.Execute(rsp, vars)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						  
+				return
 			}
 
 			return

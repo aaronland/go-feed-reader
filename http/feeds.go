@@ -9,8 +9,8 @@ import (
 )
 
 type FeedVars struct {
-     PageTitle string
-	Feeds []*gofeed.Feed
+	PageTitle string
+	Feeds     []*gofeed.Feed
 }
 
 func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -37,8 +37,8 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		vars := FeedVars{
-		     	PageTitle: "",
-			Feeds: feeds,
+			PageTitle: "",
+			Feeds:     feeds,
 		}
 
 		err = t.Execute(rsp, vars)

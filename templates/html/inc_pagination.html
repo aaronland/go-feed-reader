@@ -3,21 +3,20 @@
 
   <!-- first -->
   
-  {{ if gt .Pagination.Page 1 }}
-  <li><a href="FIXME&page={{ .Pagination.Page - 1 }}">Previous page</a></li>
+  {{ if gt .Pagination.PreviousPage 0 }}
+  <li><a href="FIXME&page={{ .Pagination.PreviousPage }}">Previous page</a></li>
   {{ else }}
-  <li class="disabled"><a href="#">This is the first page</a></li>
+  <li class="disabled"><a href="#" disabled="disabled">This is the first page</a></li>
   {{ end }}
 
   <!-- middle -->
-
-
+  
   <!-- last -->
   
-  {{ if tt .Pagination.Page .Pagination.PageCount }}
-  <li><a href="FIXME&page={{ .Pagination.Page + 1 }}">Next page</a></li>
+  {{ if gt .Pagination.NextPage 0 }}
+  <li><a href="FIXME&page={{ .Pagination.NextPage }}">Next page</a></li>
   {{ else }}
-  <li class="disabled"><a href="#">This is the last page</a></li>
+  <li class="disabled"><a href="#" disabled="disabled">This is the last page</a></li>
   {{ end }}
   
 </ul>

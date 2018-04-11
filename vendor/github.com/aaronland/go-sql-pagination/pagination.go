@@ -25,6 +25,8 @@ type Pagination interface {
 	PerPage() int
 	Page() int
 	Pages() int
+	NextPage() int
+	PreviousPage() int
 	Range() []int
 }
 
@@ -47,6 +49,8 @@ type DefaultPagination struct {
 	per_page int
 	page     int
 	pages    int
+	next_page int
+	previous_page int
 	pages_range 	 []int
 }
 
@@ -64,6 +68,14 @@ func (p *DefaultPagination) Page() int {
 
 func (p *DefaultPagination) Pages() int {
 	return p.pages
+}
+
+func (p *DefaultPagination) NextPage() int {
+	return p.next_page
+}
+
+func (p *DefaultPagination) PreviousPage() int {
+	return p.previous_page
 }
 
 func (p *DefaultPagination) Range() []int {
@@ -221,6 +233,21 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 	}
 
 	pages := int(math.Ceil(float64(total_count) / float64(per_page)))
+
+	next_page := 0
+	previous_page := 0
+
+	if pages > 1 {
+	
+	if page > 1 {
+		next_page = page + 1
+	}
+
+	if page < pages {
+		previous_page = page  - 1
+	}
+	
+	}
 	log.Println("PAGES", pages)
 
 	pages_range := make([]int, 0)
@@ -267,6 +294,8 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 		per_page: per_page,
 		page:     page,
 		pages:    pages,
+		next_page: next_page,
+		previous_page: previous_page,			   
 		pages_range:	  pages_range,
 	}
 

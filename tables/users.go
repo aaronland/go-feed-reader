@@ -12,10 +12,10 @@ type UsersTable struct {
 }
 
 type User struct {
-     	Id int64
-	Name string
+	Id       int64
+	Name     string
 	Password string
-	Salt string		 
+	Salt     string
 }
 
 func NewUsersTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {

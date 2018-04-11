@@ -79,7 +79,7 @@ func main() {
 
 	mux.Handle("/feeds", feeds_handler)
 	mux.Handle("/search", search_handler)
-	mux.Handle("/add", add_handler)	
+	mux.Handle("/add", add_handler)
 	mux.Handle("/", items_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
