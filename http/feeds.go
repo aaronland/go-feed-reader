@@ -9,6 +9,7 @@ import (
 )
 
 type FeedVars struct {
+     PageTitle string
 	Feeds []*gofeed.Feed
 }
 
@@ -36,6 +37,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		vars := FeedVars{
+		     	PageTitle: "",
 			Feeds: feeds,
 		}
 
