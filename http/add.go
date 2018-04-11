@@ -3,10 +3,12 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-feed-reader/crumb"	
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/whosonfirst/go-sanitize"
-	"github.com/grokify/html-strip-tags-go"	
-	"log"		
+	"github.com/grokify/html-strip-tags-go"
+	"github.com/mmcdole/gofeed"	
+	_ "log"		
 	gohttp "net/http"
 	"net/url"
 )
@@ -14,6 +16,12 @@ import (
 type FormVars struct {
      	PageTitle string
 	Crumb string
+}
+
+type PostVars struct {
+     	PageTitle string
+	Crumb string
+	Items []*gofeed.Item
 }
 
 func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -48,17 +56,31 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		log.Println("ADD", req.Method)
+		/*
+		user, err := login.EnsureLogin(req)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusForbidden)
+			return						  
+		}
+		*/
 		
 		switch req.Method {
 		case "GET":
 
-			vars := FormVars{
-			     	PageTitle: "",
-				Crumb: "OMGWTFFIXME",
+			crumb_var, err := crumb.GenerateCrumb(req)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return						  
 			}
 
-			err := t_form.Execute(rsp, vars)
+			vars := FormVars{
+			     	PageTitle: "",
+				Crumb: crumb_var,
+			}
+
+			err = t_form.Execute(rsp, vars)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
@@ -69,34 +91,44 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			
 		case "POST":
 
-			log.Println("FORM")
-			
 			raw_feed := req.PostFormValue("feed")
 			raw_crumb := req.PostFormValue("crumb")			
 
 			opts := sanitize.DefaultOptions()
 			
-			feed_url, err := sanitize.SanitizeString(raw_reed, opts)
+			feed_url, err := sanitize.SanitizeString(raw_feed, opts)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 				return						  
 			}
 
-			crumb, err := sanitize.SanitizeString(raw_crumb, opts)
+			crumb_var, err := sanitize.SanitizeString(raw_crumb, opts)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 				return						  
 			}
 
+			if crumb_var == "" {
+				gohttp.Error(rsp, "Missing crumb", gohttp.StatusBadRequest)
+				return						  
+			}
+
+			ok, err := crumb.ValidateCrumb(crumb_var)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return						  
+			}
+
+			if !ok {
+				gohttp.Error(rsp, "Invalid crumb", gohttp.StatusForbidden)
+				return						  
+			}
+			
 			if feed_url == "" {
 				gohttp.Error(rsp, "Missing feed", gohttp.StatusBadRequest)
-				return						  
-			}
-
-			if crumb == "" {
-				gohttp.Error(rsp, "Missing crumb", gohttp.StatusBadRequest)
 				return						  
 			}
 
@@ -107,14 +139,28 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return						  
 			}
 
-			_, err = fr.AddFeed(feed_url)
+			// feed, err := fr.AddFeedForUser(user, feed_url)
+			
+			feed, err := fr.AddFeed(feed_url)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 				return						  
 			}
 
-			// display stuff here...
+			vars := PostVars{
+			     	PageTitle: "",
+				Crumb: "OMGWTFFIXME",
+				Items: feed.Items,
+			}
+
+			err = p_form.Execute(rsp, vars)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return						  
+			}
+
 			return
 
 		default:
