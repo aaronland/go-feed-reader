@@ -29,6 +29,7 @@ type Pagination interface {
 	NextPage() int
 	PreviousPage() int
 	NextURL(u *url.URL) string
+	PreviousURL(u *url.URL) string	
 	Range() []int
 }
 
@@ -80,13 +81,30 @@ func (p *DefaultPagination) NextURL(u *url.URL) string {
 
      next := p.NextPage()
 
-     if next > 0 {
-
+     if next == 0 {
+     	return "#"
+     }
+     
      q := u.Query()
      
      q.Set("page", fmt.Sprintf("%d", next))
      u.RawQuery = q.Encode()
-     }
+     
+     return u.String()
+}
+
+func (p *DefaultPagination) PreviousURL(u *url.URL) string {
+
+     previous := p.PreviousPage()
+
+     if previous == 0 {
+     	return "#"
+	}
+	
+     q := u.Query()
+     
+     q.Set("page", fmt.Sprintf("%d", previous))
+     u.RawQuery = q.Encode()
      
      return u.String()
 }

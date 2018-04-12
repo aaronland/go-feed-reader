@@ -2,21 +2,24 @@
 <ul class="pagination" id="pagination">
 
   <!-- first -->
-  
-  {{ if gt .Pagination.PreviousPage 0 }}
-  <li><a href="FIXME&page={{ .Pagination.PreviousPage }}">Previous page</a></li>
-  {{ else }}
+
+  {{ $prev := .Pagination.PreviousURL .URL }}
+  {{ $next := .Pagination.NextURL .URL }}  
+
+  {{ if eq $prev "#" }}
   <li class="disabled"><a href="#" disabled="disabled">This is the first page</a></li>
+  {{ else }}  
+  <li><a href="{{ $prev }}">Previous page</a></li>
   {{ end }}
 
   <!-- middle -->
   
   <!-- last -->
   
-  {{ if gt .Pagination.NextPage 0 }}
-  <li><a href="{{ .Pagination.NextURL | .Pagination.URL }}">Next page</a></li>
-  {{ else }}
+  {{ if eq $next "#" }}
   <li class="disabled"><a href="#" disabled="disabled">This is the last page</a></li>
+  {{ else }}
+  <li><a href="{{ $next }}">Next page</a></li>
   {{ end }}
   
 </ul>
