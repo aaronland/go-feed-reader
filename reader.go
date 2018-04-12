@@ -9,7 +9,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
-	_ "log"
+	"log"
 	"sync"
 )
 
@@ -129,9 +129,12 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 
 	sql := fmt.Sprintf("SELECT feed, guid FROM %s(?) ORDER BY rank", fr.search.Name())
 
+	log.Println("SEARCH", sql, q)
+	
 	rsp, err := pagination.QueryPaginated(conn, opts, sql, q)
 
 	if err != nil {
+	   	log.Println("ARGH", err)
 		return nil, err
 	}
 

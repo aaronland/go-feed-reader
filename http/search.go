@@ -66,7 +66,8 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		raw_p := query.Get("page")
 
 		pg_opts := pagination.NewDefaultPaginatedOptions()
-
+		pg_opts.Column("feed")
+		
 		sn_opts := sanitize.DefaultOptions()
 		q, err := sanitize.SanitizeString(raw_q, sn_opts)
 
