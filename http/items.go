@@ -42,7 +42,6 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
 		opts := pagination.NewDefaultPaginatedOptions()
-		opts.PerPage(3)
 
 		query := req.URL.Query()
 		str_page := query.Get("page")

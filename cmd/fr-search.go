@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/aaronland/go-feed-reader"
+	"github.com/aaronland/go-sql-pagination"
 	"log"
 	"os"
 )
@@ -20,13 +21,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	items, err := fr.Search(*q)
+	pg_opts := pagination.NewDefaultPaginatedOptions()
+
+	rsp, err := fr.Search(*q, pg_opts)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, i := range items {
+	for _, i := range rsp.Items {
 		log.Println(i.Title, i.Link)
 	}
 

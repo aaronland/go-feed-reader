@@ -3,17 +3,27 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
+	"net/url"
+	"strconv"
 )
 
+type SearchFormVars struct {
+	PageTitle string
+}
+
 type ResultsVars struct {
-	Items []*gofeed.Item
-	Query string
+	PageTitle  string
+	Items      []*gofeed.Item
+	Query      string
+	Pagination pagination.Pagination
+	URL        *url.URL
 }
 
 func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -28,6 +38,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_head.html",
 		"templates/html/inc_search_form.html",
 		"templates/html/inc_search_results.html",
+		"templates/html/inc_pagination.html",
 		"templates/html/inc_items.html",
 		"templates/html/inc_foot.html",
 	}
@@ -52,9 +63,19 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		query := req.URL.Query()
 		raw_q := query.Get("q")
+		raw_p := query.Get("page")
 
-		opts := sanitize.DefaultOptions()
-		q, err := sanitize.SanitizeString(raw_q, opts)
+		pg_opts := pagination.NewDefaultPaginatedOptions()
+
+		sn_opts := sanitize.DefaultOptions()
+		q, err := sanitize.SanitizeString(raw_q, sn_opts)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+			return
+		}
+
+		p, err := sanitize.SanitizeString(raw_p, sn_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
@@ -63,7 +84,11 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		if q == "" {
 
-			err := query_t.ExecuteTemplate(rsp, "query", "")
+			vars := SearchFormVars{
+				PageTitle: "",
+			}
+
+			err := query_t.ExecuteTemplate(rsp, "query", vars)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
@@ -73,7 +98,19 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			return
 		}
 
-		items, err := fr.Search(q)
+		if p != "" {
+
+			page, err := strconv.Atoi(p)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+				return
+			}
+
+			pg_opts.Page(page)
+		}
+
+		results, err := fr.Search(q, pg_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
@@ -81,8 +118,11 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		vars := ResultsVars{
-			Items: items,
-			Query: q,
+			PageTitle:  "",
+			Items:      results.Items,
+			Pagination: results.Pagination,
+			URL:        req.URL,
+			Query:      q,
 		}
 
 		err = results_t.ExecuteTemplate(rsp, "results", vars)

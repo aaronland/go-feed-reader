@@ -113,7 +113,7 @@ func (fr *FeedReader) Refresh() error {
 	return nil
 }
 
-func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
+func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -125,13 +125,16 @@ func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
 
 	sql := fmt.Sprintf("SELECT feed, guid FROM %s(?) ORDER BY rank", fr.search.Name())
 
-	rows, err := conn.Query(sql, q)
+	rsp, err := pagination.QueryPaginated(conn, opts, sql, q)
 
 	if err != nil {
 		return nil, err
 	}
 
 	guids := make([][]string, 0)
+
+	rows := rsp.Rows()
+	pg := rsp.Pagination()
 
 	for rows.Next() {
 
@@ -153,6 +156,8 @@ func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
 		return nil, err
 	}
 
+	// please do this concurrently
+
 	items := make([]*gofeed.Item, 0)
 
 	for _, g := range guids {
@@ -172,7 +177,12 @@ func (fr *FeedReader) Search(q string) ([]*gofeed.Item, error) {
 		items = append(items, item)
 	}
 
-	return items, nil
+	r := ItemsResponse{
+		Items:      items,
+		Pagination: pg,
+	}
+
+	return &r, nil
 }
 
 func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
