@@ -14,7 +14,7 @@
   <!-- last -->
   
   {{ if gt .Pagination.NextPage 0 }}
-  <li><a href="FIXME&page={{ .Pagination.NextPage }}">Next page</a></li>
+  <li><a href="{{ .Pagination.NextURL | .Pagination.URL }}">Next page</a></li>
   {{ else }}
   <li class="disabled"><a href="#" disabled="disabled">This is the last page</a></li>
   {{ end }}

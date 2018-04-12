@@ -7,7 +7,9 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
+	_ "log"
 	gohttp "net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -15,6 +17,7 @@ type ItemsVars struct {
 	PageTitle  string
 	Items      []*gofeed.Item
 	Pagination pagination.Pagination
+	URL        *url.URL
 }
 
 func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -39,6 +42,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
 		opts := pagination.NewDefaultPaginatedOptions()
+		opts.PerPage(3)
 
 		query := req.URL.Query()
 		str_page := query.Get("page")
@@ -66,6 +70,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			PageTitle:  "Recent items",
 			Items:      q_rsp.Items,
 			Pagination: q_rsp.Pagination,
+			URL:        req.URL,
 		}
 
 		err = t.Execute(rsp, vars)

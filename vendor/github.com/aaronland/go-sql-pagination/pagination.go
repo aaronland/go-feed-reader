@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"strings"
+	"net/url"
 )
 
 type PaginatedOptions interface {
@@ -27,6 +28,7 @@ type Pagination interface {
 	Pages() int
 	NextPage() int
 	PreviousPage() int
+	NextURL(u *url.URL) string
 	Range() []int
 }
 
@@ -72,6 +74,21 @@ func (p *DefaultPagination) Pages() int {
 
 func (p *DefaultPagination) NextPage() int {
 	return p.next_page
+}
+
+func (p *DefaultPagination) NextURL(u *url.URL) string {
+
+     next := p.NextPage()
+
+     if next > 0 {
+
+     q := u.Query()
+     
+     q.Set("page", fmt.Sprintf("%d", next))
+     u.RawQuery = q.Encode()
+     }
+     
+     return u.String()
 }
 
 func (p *DefaultPagination) PreviousPage() int {
@@ -199,7 +216,6 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 		offset = (page - 1) * per_page
 
 		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-		log.Println("QUERY", query)
 
 		rows, err := db.Query(query, args...)
 
@@ -240,16 +256,16 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 	if pages > 1 {
 	
 	if page > 1 {
-		next_page = page + 1
+		previous_page = page  - 1	
+
 	}
 
 	if page < pages {
-		previous_page = page  - 1
+		next_page = page + 1
 	}
 	
 	}
-	log.Println("PAGES", pages)
-
+	
 	pages_range := make([]int, 0)
 
 	var range_min int
