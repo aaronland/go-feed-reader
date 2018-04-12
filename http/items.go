@@ -24,6 +24,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	files := []string{
 		"templates/html/inc_head.html",
+		"templates/html/inc_pagination.html",
 		"templates/html/inc_items.html",
 		"templates/html/inc_pagination.html",
 		"templates/html/inc_foot.html",

@@ -40,6 +40,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_search_results.html",
 		"templates/html/inc_pagination.html",
 		"templates/html/inc_items.html",
+		"templates/html/inc_pagination.html",
 		"templates/html/inc_foot.html",
 	}
 
@@ -67,7 +68,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		pg_opts := pagination.NewDefaultPaginatedOptions()
 		pg_opts.Column("feed")
-		
+
 		sn_opts := sanitize.DefaultOptions()
 		q, err := sanitize.SanitizeString(raw_q, sn_opts)
 

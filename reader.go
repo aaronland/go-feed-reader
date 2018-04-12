@@ -21,13 +21,17 @@ type FeedReader struct {
 	mu       *sync.Mutex
 }
 
+type FeedsResponse struct {
+	Feeds      []*gofeed.Feed
+	Pagination pagination.Pagination
+}
+
 type ItemsResponse struct {
 	Items      []*gofeed.Item
 	Pagination pagination.Pagination
 }
 
 type ListItemsOptions struct {
-
 }
 
 func NewFeedReader(dsn string) (*FeedReader, error) {
@@ -130,7 +134,7 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 	sql := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
 
 	log.Println("SEARCH", sql, q)
-	
+
 	rsp, err := pagination.QueryPaginated(conn, opts, sql, q)
 
 	if err != nil {
@@ -205,7 +209,7 @@ func (fr *FeedReader) ListItems(pg_opts pagination.PaginatedOptions) (*ItemsResp
 
 	// add "WHERE read=0" toggle
 	// add "WHERE feed=..." toggle
-	
+
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
@@ -228,7 +232,7 @@ func (fr *FeedReader) ListItems(pg_opts pagination.PaginatedOptions) (*ItemsResp
 	return &r, nil
 }
 
-func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
+func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginationOptions) (*FeedsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -238,11 +242,14 @@ func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY updated ASC", fr.feeds.Name())
 
-	rows, err := conn.Query(q)
+	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
 
 	if err != nil {
 		return nil, err
 	}
+
+	rows := rsp.Rows()
+	pg := rsp.Pagination()
 
 	feeds := make([]*gofeed.Feed, 0)
 
@@ -272,7 +279,12 @@ func (fr *FeedReader) ListFeeds() ([]*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	return feeds, nil
+	r := FeedsResponse{
+		Feeds:      feeds,
+		Pagination: pg,
+	}
+
+	return &r, nil
 }
 
 func (fr *FeedReader) RefreshFeeds(feeds []*gofeed.Feed) error {

@@ -17,7 +17,7 @@ func main() {
 	var port = flag.Int("port", 8080, "")
 
 	var dsn = flag.String("dsn", ":memory:", "")
-	var refresh = flag.Int("refresh", 15, "")	
+	var refresh = flag.Int("refresh", 15, "")
 
 	flag.Parse()
 
@@ -56,7 +56,7 @@ func main() {
 	go func() {
 
 		d := time.Duration(*refresh)
-		
+
 		ticker := time.NewTicker(time.Minute * d).C
 
 		for {
