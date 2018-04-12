@@ -26,6 +26,10 @@ type ItemsResponse struct {
 	Pagination pagination.Pagination
 }
 
+type ListItemsOptions struct {
+
+}
+
 func NewFeedReader(dsn string) (*FeedReader, error) {
 
 	db, err := database.NewDBWithDriver("sqlite3", dsn)
@@ -189,7 +193,7 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
-func (fr *FeedReader) ListItems(opts pagination.PaginatedOptions) (*ItemsResponse, error) {
+func (fr *FeedReader) ListItems(pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -198,10 +202,11 @@ func (fr *FeedReader) ListItems(opts pagination.PaginatedOptions) (*ItemsRespons
 	}
 
 	// add "WHERE read=0" toggle
-
+	// add "WHERE feed=..." toggle
+	
 	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
 
-	rsp, err := pagination.QueryPaginated(conn, opts, q)
+	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
 
 	if err != nil {
 		return nil, err
