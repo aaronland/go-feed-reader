@@ -1,5 +1,7 @@
 package tables
 
+// https://www.sqlite.org/fts5.html
+
 import (
 	"fmt"
 	"github.com/mmcdole/gofeed"

@@ -3,7 +3,7 @@ package pagination
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	_ "log"
 	"math"
 	"strings"
 	"net/url"
@@ -191,25 +191,24 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 
 		parts := strings.Split(query, " FROM ")
 		parts = strings.Split(parts[1], " LIMIT ")
-
+		parts = strings.Split(parts[0], " ORDER ")
+		
 		conditions := parts[0]
 
-		count_query := fmt.Sprintf("SELECT COUNT(%s) AS c FROM %s", opts.Column(), conditions)
-
-		log.Println("COUNT QUERY", count_query)
-
-		row := db.QueryRow(count_query)
+		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)
+		// log.Println("COUNT QUERY", count_query)
+		
+		row := db.QueryRow(count_query, args...)
 
 		var count int
 		err := row.Scan(&count)
 
 		if err != nil {
-		   	log.Println("COUNT ERR", err)
 			err_ch <- err
 			return
 		}
 
-		log.Println("COUNT", count)
+		// log.Println("COUNT", count)
 		count_ch <- count
 	}()
 
@@ -236,12 +235,11 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 		offset = (page - 1) * per_page
 
 		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-		log.Println(query)
+		// log.Println("QUERY", query)
 		
 		rows, err := db.Query(query, args...)
 
 		if err != nil {
-		   	log.Println("QUERY ERR", err)
 			err_ch <- err
 			return
 		}

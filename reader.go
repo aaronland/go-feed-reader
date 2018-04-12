@@ -127,14 +127,13 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 
 	// https://www.sqlite.org/fts5.html
 
-	sql := fmt.Sprintf("SELECT feed, guid FROM %s(?) ORDER BY rank", fr.search.Name())
+	sql := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
 
 	log.Println("SEARCH", sql, q)
 	
 	rsp, err := pagination.QueryPaginated(conn, opts, sql, q)
 
 	if err != nil {
-	   	log.Println("ARGH", err)
 		return nil, err
 	}
 
