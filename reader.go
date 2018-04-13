@@ -11,6 +11,7 @@ import (
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
 	"io"
 	"log"
+	"strings"
 	"sync"
 )
 
@@ -240,9 +241,24 @@ func (fr *FeedReader) ListItems(ls_opts *ListItemsOptions, pg_opts pagination.Pa
 	// add "WHERE read=0" toggle
 	// add "WHERE feed=..." toggle
 
-	q := fmt.Sprintf("SELECT body FROM %s ORDER BY published ASC, updated ASC", fr.items.Name())
+	conditions := make([]string, 0)
+	args := make([]interface{}, 0)
 
-	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
+	if ls_opts.FeedURL != "" {
+
+		conditions = append(conditions, "feed = ?")
+		args = append(args, ls_opts.FeedURL)
+	}
+
+	where := ""
+
+	if len(conditions) > 0 {
+		where = fmt.Sprintf("WHERE %s", strings.Join(conditions, " AND "))
+	}
+
+	q := fmt.Sprintf("SELECT body FROM %s %s ORDER BY published ASC, updated ASC", fr.items.Name(), where)
+
+	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, args...)
 
 	if err != nil {
 		return nil, err

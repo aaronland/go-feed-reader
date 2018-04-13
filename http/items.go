@@ -7,6 +7,7 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
+	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
 	"net/url"
@@ -42,10 +43,28 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		pg_opts := pagination.NewDefaultPaginatedOptions()
-
 		query := req.URL.Query()
-		str_page := query.Get("page")
+
+		raw_page := query.Get("page")
+		raw_feed := query.Get("feed")
+
+		sn_opts := sanitize.DefaultOptions()
+
+		str_page, err := sanitize.SanitizeString(raw_page, sn_opts)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+			return
+		}
+
+		str_feed, err := sanitize.SanitizeString(raw_feed, sn_opts)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+			return
+		}
+
+		pg_opts := pagination.NewDefaultPaginatedOptions()
 
 		if str_page != "" {
 
@@ -60,6 +79,18 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		ls_opts := reader.NewDefaultListItemsOptions()
+
+		if str_feed != "" {
+
+			u, err := url.Parse(str_feed)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+				return
+			}
+
+			ls_opts.FeedURL = u.String()
+		}
 
 		q_rsp, err := fr.ListItems(ls_opts, pg_opts)
 
