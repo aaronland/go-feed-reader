@@ -5,9 +5,11 @@ import (
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
-	"github.com/grokify/html-strip-tags-go"
+	_ "github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	gohttp "net/http"
+	"net/url"
+	"strconv"
 )
 
 type FeedVars struct {
@@ -61,7 +63,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		vars := FeedVars{
 			PageTitle:  "",
-			Feeds:      results.Feed,
+			Feeds:      results.Feeds,
 			Pagination: results.Pagination,
 			URL:        req.URL,
 		}

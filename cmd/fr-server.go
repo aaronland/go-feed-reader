@@ -27,7 +27,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go fr.Refresh()
+	go fr.RefreshFeeds()
 
 	feeds_handler, err := http.FeedsHandler(fr)
 
@@ -65,14 +65,11 @@ func main() {
 
 				log.Println("refresh feeds")
 
-				err := fr.Refresh()
+				err := fr.RefreshFeeds()
 
 				if err != nil {
 					log.Println(err)
 				}
-
-			default:
-				// pass
 			}
 		}
 

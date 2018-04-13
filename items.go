@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/mmcdole/gofeed"
-	"log"
+	_ "log"
 )
 
 func DatabaseRowsToFeedItems(rows *sql.Rows) ([]*gofeed.Item, error) {

@@ -9,6 +9,7 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/database"
+	"io"
 	"log"
 	"sync"
 )
@@ -96,7 +97,23 @@ func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
 	return feed, nil
 }
 
-func (fr *FeedReader) Refresh() error {
+func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
+
+	cb := func(f *gofeed.Feed) error {
+		wr.Write([]byte(f.FeedLink + "\n"))
+		return nil
+	}
+
+	err := fr.ListFeedsAll(cb)
+
+	if err != nil {
+		log.Fatal()
+	}
+
+	return nil
+}
+
+func (fr *FeedReader) RefreshFeeds() error {
 
 	fr.mu.Lock()
 
@@ -106,36 +123,18 @@ func (fr *FeedReader) Refresh() error {
 
 	// check last update here...
 
-	cb := func(r pagination.PaginatedResponse) error {
+	cb := func(feed *gofeed.Feed) error {
 
-		feeds, err := DatabaseRowsToFeeds(r.Rows())
+		err := fr.RefreshFeed(feed)
 
 		if err != nil {
-			return err
+			log.Println(feed, err)
 		}
 
-		for _, feed := range feeds {
-
-			err := f.RefreshFeed(feed)
-
-			if err != nil {
-				log.Println(feed, err)
-			}
-		}
+		return nil
 	}
 
-	conn, err := fr.database.Conn()
-
-	if err != nil {
-		return nil, err
-	}
-
-	sql := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
-
-	opts := pagination.NewDefaultPaginatedOptions()
-	opts.PerPage(100)
-
-	return pagination.PaginatedQueryAll(conn, opts, cb, sql)
+	return fr.ListFeedsAll(cb)
 }
 
 func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
@@ -249,7 +248,43 @@ func (fr *FeedReader) ListItems(pg_opts pagination.PaginatedOptions) (*ItemsResp
 	return &r, nil
 }
 
-func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginationOptions) (*FeedsResponse, error) {
+func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
+
+	cb := func(r pagination.PaginatedResponse) error {
+
+		feeds, err := DatabaseRowsToFeeds(r.Rows())
+
+		if err != nil {
+			return err
+		}
+
+		for _, feed := range feeds {
+
+			err := feed_cb(feed)
+
+			if err != nil {
+				log.Println(feed, err)
+			}
+		}
+
+		return nil
+	}
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return err
+	}
+
+	sql := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
+
+	opts := pagination.NewDefaultPaginatedOptions()
+	opts.PerPage(100)
+
+	return pagination.QueryPaginatedAll(conn, opts, cb, sql)
+}
+
+func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginatedOptions) (*FeedsResponse, error) {
 
 	conn, err := fr.database.Conn()
 

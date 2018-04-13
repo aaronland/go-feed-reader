@@ -5,13 +5,11 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"log"
 	"os"
-	"time"
 )
 
 func main() {
 
 	var dsn = flag.String("dsn", ":memory:", "")
-	var daemon = flag.Bool("daemon", false, "")
 
 	flag.Parse()
 
@@ -21,25 +19,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for {
+	err = fr.RefreshFeeds()
 
-		feeds, err := fr.ListFeeds()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = fr.RefreshFeeds(feeds)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if !*daemon {
-			break
-		}
-
-		time.Sleep(time.Minute * 30)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	os.Exit(0)

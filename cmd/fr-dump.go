@@ -19,14 +19,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	feeds, err := fr.ListFeeds()
+	err = fr.DumpFeeds(os.Stdout)
 
 	if err != nil {
-		log.Fatal()
-	}
-
-	for _, f := range feeds {
-		os.Stdout.Write([]byte(f.FeedLink + "\n"))
+		log.Fatal(err)
 	}
 
 	os.Exit(0)

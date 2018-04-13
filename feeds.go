@@ -3,7 +3,7 @@ package reader
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/mmcdole/gofeed"	
+	"github.com/mmcdole/gofeed"
 )
 
 func DatabaseRowsToFeeds(rows *sql.Rows) ([]*gofeed.Feed, error) {
@@ -13,7 +13,7 @@ func DatabaseRowsToFeeds(rows *sql.Rows) ([]*gofeed.Feed, error) {
 	for rows.Next() {
 
 		var body string
-		err = rows.Scan(&body)
+		err := rows.Scan(&body)
 
 		if err != nil {
 			return nil, err
@@ -21,7 +21,7 @@ func DatabaseRowsToFeeds(rows *sql.Rows) ([]*gofeed.Feed, error) {
 
 		var f gofeed.Feed
 
-		err := json.Unmarshal([]byte(body), &f)
+		err = json.Unmarshal([]byte(body), &f)
 
 		if err != nil {
 			return nil, err
@@ -30,7 +30,7 @@ func DatabaseRowsToFeeds(rows *sql.Rows) ([]*gofeed.Feed, error) {
 		feeds = append(feeds, &f)
 	}
 
-	err = rows.Err()
+	err := rows.Err()
 
 	if err != nil {
 		return nil, err
