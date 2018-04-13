@@ -35,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	items_handler, err := http.ItemsHandler(fr)
+	recent_handler, err := http.RecentItemsHandler(fr)
 
 	if err != nil {
 		log.Fatal(err)
@@ -74,10 +74,11 @@ func main() {
 
 	mux := gohttp.NewServeMux()
 
+	mux.Handle("/", feeds_handler)
 	mux.Handle("/feeds", feeds_handler)
 	mux.Handle("/search", search_handler)
 	mux.Handle("/add", add_handler)
-	mux.Handle("/", items_handler)
+	mux.Handle("/recent", recent_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)

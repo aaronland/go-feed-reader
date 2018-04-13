@@ -14,14 +14,14 @@ import (
 	"strconv"
 )
 
-type ItemsVars struct {
+type RecentItemsVars struct {
 	PageTitle  string
 	Items      []*gofeed.Item
 	Pagination pagination.Pagination
 	URL        *url.URL
 }
 
-func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
+func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	files := []string{
 		"templates/html/inc_head.html",
@@ -99,7 +99,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			return
 		}
 
-		vars := ItemsVars{
+		vars := RecentItemsVars{
 			PageTitle:  "Recent items",
 			Items:      q_rsp.Items,
 			Pagination: q_rsp.Pagination,
