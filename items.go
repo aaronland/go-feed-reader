@@ -34,7 +34,6 @@ func DatabaseRowsToFeedItems(rows *sql.Rows) ([]*gofeed.Item, error) {
 	err := rows.Err()
 
 	if err != nil {
-		log.Println("ITEMS ERROR", err)
 		return nil, err
 	}
 

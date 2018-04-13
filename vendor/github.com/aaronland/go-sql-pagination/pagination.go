@@ -21,6 +21,8 @@ type PaginatedResponse interface {
 	Pagination() Pagination
 }
 
+type PaginatedResponseCallback func(PaginatedResponse) error
+
 type Pagination interface {
 	Total() int
 	PerPage() int
@@ -170,6 +172,36 @@ func NewDefaultPaginatedOptions() PaginatedOptions {
 	}
 
 	return &opts
+}
+
+func QueryPaginatedAll(db *sql.DB, opts PaginatedOptions, cb PaginatedResponseCallback, query string, args ...interface{}) error {
+
+     for {
+
+     	 rsp, err := QueryPaginated(db, opts, query, args...)
+
+	 if err != nil {
+	 	return err
+	 }
+
+	 err = cb(rsp)
+
+	 if err != nil {
+	 	return err
+	 }
+	 
+	 pg := rsp.Pagination()
+
+	 next := pg.NextPage()
+
+	 if next == 0 {
+	    break
+	 }
+
+	 opts.Page(next)
+     }
+
+     return nil
 }
 
 func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...interface{}) (PaginatedResponse, error) {

@@ -106,19 +106,36 @@ func (fr *FeedReader) Refresh() error {
 
 	// check last update here...
 
-	feeds, err := fr.ListFeeds()
+	cb := func(r pagination.PaginatedResponse) error {
 
-	if err != nil {
-		return err
+		feeds, err := DatabaseRowsToFeeds(r.Rows())
+
+		if err != nil {
+			return err
+		}
+
+		for _, feed := range feeds {
+
+			err := f.RefreshFeed(feed)
+
+			if err != nil {
+				log.Println(feed, err)
+			}
+		}
 	}
 
-	err = fr.RefreshFeeds(feeds)
+	conn, err := fr.database.Conn()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	sql := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
+
+	opts := pagination.NewDefaultPaginatedOptions()
+	opts.PerPage(100)
+
+	return pagination.PaginatedQueryAll(conn, opts, cb, sql)
 }
 
 func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
@@ -287,21 +304,18 @@ func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginationOptions) (*FeedsRes
 	return &r, nil
 }
 
-func (fr *FeedReader) RefreshFeeds(feeds []*gofeed.Feed) error {
+func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 
-	for _, f := range feeds {
+	f2, err := fr.ParseFeedURL(feed.FeedLink)
 
-		f2, err := fr.RefreshFeed(f)
+	if err != nil {
+		return err
+	}
 
-		if err != nil {
-			return err
-		}
+	err = fr.IndexFeed(f2)
 
-		err = fr.IndexFeed(f2)
-
-		if err != nil {
-			return err
-		}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -318,11 +332,6 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 
 	feed.FeedLink = feed_url // this shouldn't be necessary but... you know, is (20180407/thisisaaronland)
 	return feed, nil
-}
-
-func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) (*gofeed.Feed, error) {
-
-	return fr.ParseFeedURL(feed.FeedLink)
 }
 
 func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
