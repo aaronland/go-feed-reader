@@ -57,19 +57,16 @@ func main() {
 
 		d := time.Duration(*refresh)
 
-		ticker := time.NewTicker(time.Minute * d).C
+		ticker := time.NewTicker(time.Minute * d)
 
-		for {
-			select {
-			case <-ticker:
+		for range ticker.C {
 
-				log.Println("refresh feeds")
+			log.Println("refresh feeds")
 
-				err := fr.RefreshFeeds()
+			err := fr.RefreshFeeds()
 
-				if err != nil {
-					log.Println(err)
-				}
+			if err != nil {
+				log.Println(err)
 			}
 		}
 
