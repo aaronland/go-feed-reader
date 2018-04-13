@@ -42,7 +42,7 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		opts := pagination.NewDefaultPaginatedOptions()
+		pg_opts := pagination.NewDefaultPaginatedOptions()
 
 		query := req.URL.Query()
 		str_page := query.Get("page")
@@ -56,10 +56,12 @@ func ItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
-			opts.Page(page)
+			pg_opts.Page(page)
 		}
 
-		q_rsp, err := fr.ListItems(opts)
+		ls_opts := reader.NewDefaultListItemsOptions()
+
+		q_rsp, err := fr.ListItems(ls_opts, pg_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

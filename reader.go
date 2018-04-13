@@ -33,6 +33,20 @@ type ItemsResponse struct {
 }
 
 type ListItemsOptions struct {
+	FeedURL  string
+	IsRead   bool
+	IsUnread bool
+}
+
+func NewDefaultListItemsOptions() *ListItemsOptions {
+
+	opts := ListItemsOptions{
+		FeedURL:  "",
+		IsRead:   false,
+		IsUnread: false,
+	}
+
+	return &opts
 }
 
 func NewFeedReader(dsn string) (*FeedReader, error) {
@@ -215,7 +229,7 @@ func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
-func (fr *FeedReader) ListItems(pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
+func (fr *FeedReader) ListItems(ls_opts *ListItemsOptions, pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
