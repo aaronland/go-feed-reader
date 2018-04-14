@@ -1,5 +1,5 @@
     <ul>
     {{ range $i, $f := .Feeds }}
-    <li><a href="/items?feed={{ $f.Link }}">{{ $f.Title }}</a> <small>{{ $f.Updated }}</small></li>
+    <li><a href="/recent?feed={{ $f.Link }}">{{ $f.Title }}</a> <small>{{ $f.Updated }} {{ if $f.Published }}({{ $f.Published }}){{ end }}</small></li>
     {{ end }}
     </ul>

@@ -2,12 +2,14 @@
     <div class="item" id="guid-{{ $it.GUID }}">
       <h2><a href="{{ $it.Link }}">{{ $it.Title }}</a> <small>{{ $it.Published }}</small></h2>
       <div>
+	<blockquote>
       {{ if $it.Description }}
       {{ $it.Description | strip_tags }}
       {{ else if $it.Content }}
       {{ $it.Content| strip_tags }}
       {{ else }}
       {{ end }}
+      </blockquote>
       </div>
       <p>{{ $it.Link }}</p>
       </div>

@@ -322,7 +322,7 @@ func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginatedOptions) (*FeedsResp
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s ORDER BY updated ASC", fr.feeds.Name())
+	q := fmt.Sprintf("SELECT body FROM %s ORDER BY updated DESC", fr.feeds.Name())
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
 
