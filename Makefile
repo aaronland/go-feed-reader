@@ -21,12 +21,13 @@ build:	fmt bin
 
 deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/zendesk/go-bindata/"
-	@GOPATH=$(GOPATH) go get -u "github.com/aaronland/go-sql-pagination"
+	# @GOPATH=$(GOPATH) go get -u "github.com/aaronland/go-sql-pagination"
 	@GOPATH=$(GOPATH) go get -u "github.com/arschles/go-bindata-html-template"
 	@GOPATH=$(GOPATH) go get -u "github.com/mmcdole/gofeed"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-sanitize"
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-sqlite"
 	@GOPATH=$(GOPATH) go get -u "github.com/grokify/html-strip-tags-go"
+	@GOPATH=$(GOPATH) go get -u "github.com/patrickmn/go-hmaccrypt"
 	rm -rf src/github.com/zendesk/go-bindata/testdata
 
 vendor-deps: rmdeps deps
