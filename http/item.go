@@ -7,12 +7,12 @@ import (
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-sanitize"
-	"log"
+	_ "log"
 	gohttp "net/http"
 )
 
 type ItemVars struct {
-	PageTitle  string
+	PageTitle string
 	Item      *gofeed.Item
 }
 
@@ -39,7 +39,6 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		query := req.URL.Query()
 
 		raw_guid := query.Get("guid")
-		raw_feed := query.Get("feed")
 
 		sn_opts := sanitize.DefaultOptions()
 
@@ -50,19 +49,26 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			return
 		}
 
+		/*
+		raw_feed := query.Get("feed")
+		
 		str_feed, err := sanitize.SanitizeString(raw_feed, sn_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 			return
 		}
+		*/
 
-		log.Println("FETCH", str_feed, str_guid)
-		
-		var item *gofeed.Item
-		
+		item, err := fr.GetItemByGUID(str_guid)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)		
+			return
+		}
+
 		vars := ItemVars{
-			PageTitle:  "Recent items",
+			PageTitle: item.Title,
 			Item:      item,
 		}
 

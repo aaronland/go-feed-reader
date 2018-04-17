@@ -10,7 +10,9 @@ self:   prep rmdeps
 	cp -r assets src/github.com/aaronland/go-feed-reader/
 	cp -r crumb src/github.com/aaronland/go-feed-reader/
 	cp -r http src/github.com/aaronland/go-feed-reader/
+	cp -r password src/github.com/aaronland/go-feed-reader/
 	cp -r tables src/github.com/aaronland/go-feed-reader/
+	cp -r user src/github.com/aaronland/go-feed-reader/
 	cp *.go src/github.com/aaronland/go-feed-reader/
 	cp -r vendor/* src/
 
@@ -41,7 +43,9 @@ fmt:
 	go fmt cmd/*.go
 	go fmt crumb/*.go
 	go fmt http/*.go
+	go fmt password/*.go
 	go fmt tables/*.go
+	go fmt user/*.go
 	go fmt *.go
 
 assets: self

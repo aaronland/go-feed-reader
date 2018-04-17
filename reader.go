@@ -152,6 +152,20 @@ func (fr *FeedReader) RefreshFeeds() error {
 	return fr.ListFeedsAll(cb)
 }
 
+func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {
+
+     conn, err := fr.database.Conn()
+
+     if err != nil {
+     	return nil, err
+     }
+
+     sql := "SELECT body FROM items WHERE guid = ?"
+     row := conn.QueryRow(sql, guid)
+
+     return DatabaseRowToFeedItem(row)
+}
+
 func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
