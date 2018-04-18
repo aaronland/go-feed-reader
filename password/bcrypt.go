@@ -24,7 +24,7 @@ func NewBCryptPassword(pswd string) (Password, error) {
 	}
 
 	p := BCryptPassword{
-		digest: digest,
+		digest: string(digest),
 		crypt: crypt,
 	}
 
