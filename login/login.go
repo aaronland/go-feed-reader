@@ -6,9 +6,15 @@ import (
        "net/http"
 )
 
-func IsLoggedIn(udb user.UserDB, req *http.Request) bool {
+type Provider interface {
+     user.UserDB
+     SigninURL() string
+     CookieSecret() string
+}
 
-     _, err := GetLoggedIn(udb, req)
+func IsLoggedIn(pr Provider, req *http.Request) bool {
+
+     _, err := GetLoggedIn(pr, req)
 
      if err != nil {
      	return false
@@ -17,7 +23,7 @@ func IsLoggedIn(udb user.UserDB, req *http.Request) bool {
      return true
 }
 
-func GetLoggedIn(udb user.UserDB, req *http.Request) (user.User, error) {
+func GetLoggedIn(pr Provider, req *http.Request) (user.User, error) {
 
      // cookies := req.Cookies
      

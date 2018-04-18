@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/tables"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
@@ -17,13 +18,13 @@ import (
 )
 
 type FeedReader struct {
-	user.UserDB
-	database *database.SQLiteDatabase
-	feeds    sqlite.Table
-	items    sqlite.Table
-	search   sqlite.Table
-	users    sqlite.Table
-	mu       *sync.Mutex
+	login.Provider // which implements user.UserDB
+	database       *database.SQLiteDatabase
+	feeds          sqlite.Table
+	items          sqlite.Table
+	search         sqlite.Table
+	users          sqlite.Table
+	mu             *sync.Mutex
 }
 
 type FeedsResponse struct {
@@ -104,6 +105,10 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 
 	return &fr, nil
 }
+
+// login.Provider methods
+
+// user.User methods
 
 func (fr *FeedReader) GetUserById(id string) (user.User, error) {
 
