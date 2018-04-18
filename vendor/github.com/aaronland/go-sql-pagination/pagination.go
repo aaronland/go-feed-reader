@@ -3,10 +3,10 @@ package pagination
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	_ "log"
 	"math"
-	"net/url"
 	"strings"
+	"net/url"
 )
 
 type PaginatedOptions interface {
@@ -21,6 +21,8 @@ type PaginatedResponse interface {
 	Pagination() Pagination
 }
 
+type PaginatedResponseCallback func(PaginatedResponse) error
+
 type Pagination interface {
 	Total() int
 	PerPage() int
@@ -29,7 +31,7 @@ type Pagination interface {
 	NextPage() int
 	PreviousPage() int
 	NextURL(u *url.URL) string
-	PreviousURL(u *url.URL) string
+	PreviousURL(u *url.URL) string	
 	Range() []int
 }
 
@@ -48,13 +50,13 @@ func (r *DefaultPaginatedResponse) Pagination() Pagination {
 
 type DefaultPagination struct {
 	Pagination
-	total         int
-	per_page      int
-	page          int
-	pages         int
-	next_page     int
+	total    int
+	per_page int
+	page     int
+	pages    int
+	next_page int
 	previous_page int
-	pages_range   []int
+	pages_range 	 []int
 }
 
 func (p *DefaultPagination) Total() int {
@@ -79,34 +81,34 @@ func (p *DefaultPagination) NextPage() int {
 
 func (p *DefaultPagination) NextURL(u *url.URL) string {
 
-	next := p.NextPage()
+     next := p.NextPage()
 
-	if next == 0 {
-		return "#"
-	}
-
-	q := u.Query()
-
-	q.Set("page", fmt.Sprintf("%d", next))
-	u.RawQuery = q.Encode()
-
-	return u.String()
+     if next == 0 {
+     	return "#"
+     }
+     
+     q := u.Query()
+     
+     q.Set("page", fmt.Sprintf("%d", next))
+     u.RawQuery = q.Encode()
+     
+     return u.String()
 }
 
 func (p *DefaultPagination) PreviousURL(u *url.URL) string {
 
-	previous := p.PreviousPage()
+     previous := p.PreviousPage()
 
-	if previous == 0 {
-		return "#"
+     if previous == 0 {
+     	return "#"
 	}
-
-	q := u.Query()
-
-	q.Set("page", fmt.Sprintf("%d", previous))
-	u.RawQuery = q.Encode()
-
-	return u.String()
+	
+     q := u.Query()
+     
+     q.Set("page", fmt.Sprintf("%d", previous))
+     u.RawQuery = q.Encode()
+     
+     return u.String()
 }
 
 func (p *DefaultPagination) PreviousPage() int {
@@ -172,6 +174,36 @@ func NewDefaultPaginatedOptions() PaginatedOptions {
 	return &opts
 }
 
+func QueryPaginatedAll(db *sql.DB, opts PaginatedOptions, cb PaginatedResponseCallback, query string, args ...interface{}) error {
+
+     for {
+
+     	 rsp, err := QueryPaginated(db, opts, query, args...)
+
+	 if err != nil {
+	 	return err
+	 }
+
+	 err = cb(rsp)
+
+	 if err != nil {
+	 	return err
+	 }
+	 
+	 pg := rsp.Pagination()
+
+	 next := pg.NextPage()
+
+	 if next == 0 {
+	    break
+	 }
+
+	 opts.Page(next)
+     }
+
+     return nil
+}
+
 func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...interface{}) (PaginatedResponse, error) {
 
 	done_ch := make(chan bool)
@@ -191,13 +223,14 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 
 		parts := strings.Split(query, " FROM ")
 		parts = strings.Split(parts[1], " LIMIT ")
-
+		parts = strings.Split(parts[0], " ORDER ")
+		
 		conditions := parts[0]
 
 		count_query := fmt.Sprintf("SELECT COUNT(%s) FROM %s", opts.Column(), conditions)
-		log.Println("COUNT", count_query)
-
-		row := db.QueryRow(count_query)
+		// log.Println("COUNT QUERY", count_query)
+		
+		row := db.QueryRow(count_query, args...)
 
 		var count int
 		err := row.Scan(&count)
@@ -207,7 +240,7 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 			return
 		}
 
-		log.Println("COUNT", count)
+		// log.Println("COUNT", count)
 		count_ch <- count
 	}()
 
@@ -234,7 +267,8 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 		offset = (page - 1) * per_page
 
 		query = fmt.Sprintf("%s LIMIT %d OFFSET %d", query, limit, offset)
-
+		// log.Println("QUERY", query)
+		
 		rows, err := db.Query(query, args...)
 
 		if err != nil {
@@ -272,65 +306,65 @@ func QueryPaginated(db *sql.DB, opts PaginatedOptions, query string, args ...int
 	previous_page := 0
 
 	if pages > 1 {
-
-		if page > 1 {
-			previous_page = page - 1
-
-		}
-
-		if page < pages {
-			next_page = page + 1
-		}
+	
+	if page > 1 {
+		previous_page = page  - 1	
 
 	}
 
+	if page < pages {
+		next_page = page + 1
+	}
+	
+	}
+	
 	pages_range := make([]int, 0)
 
 	var range_min int
 	var range_max int
 	var range_mid int
-
+	
 	var rfloor int
-	var adjmin int
+	var adjmin int	
 	var adjmax int
-
+	
 	if pages > 10 {
 
-		range_mid = 7
-		rfloor = int(math.Floor(float64(range_mid) / 2.0))
+	   range_mid = 7
+	   rfloor = int(math.Floor(float64(range_mid) / 2.0))
 
-		range_min = page - rfloor
-		range_max = page + rfloor
+	   range_min = page - rfloor
+	   range_max = page + rfloor
 
-		if range_min <= 0 {
+	   if range_min <= 0 {
 
-			adjmin = int(math.Abs(float64(range_min)))
+	   	adjmin = int(math.Abs(float64(range_min)))
 
-			range_min = 1
-			range_max = page + adjmin + 1
-		}
+		range_min = 1
+		range_max = page + adjmin + 1
+	   }
 
-		if range_max >= pages {
+	   if range_max >= pages {
 
-			adjmax = range_max - pages
+	   	adjmax = range_max - pages
 
-			range_min = range_min - adjmax
-			range_max = pages
-		}
+		range_min = range_min - adjmax
+		range_max = pages			  
+	   }
 
-		for i := range_min; range_min <= range_max; range_min++ {
-			pages_range = append(pages_range, i)
-		}
-	}
+	   for i := range_min; range_min <= range_max; range_min++ {
+	   	pages_range = append(pages_range, i)
+	   }
+	}	
 
 	pg := DefaultPagination{
-		total:         total_count,
-		per_page:      per_page,
-		page:          page,
-		pages:         pages,
-		next_page:     next_page,
-		previous_page: previous_page,
-		pages_range:   pages_range,
+		total:    total_count,
+		per_page: per_page,
+		page:     page,
+		pages:    pages,
+		next_page: next_page,
+		previous_page: previous_page,			   
+		pages_range:	  pages_range,
 	}
 
 	rsp := DefaultPaginatedResponse{

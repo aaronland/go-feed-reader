@@ -7,7 +7,7 @@ import (
 
 type BCryptPassword struct {
 	Password
-	crypt *hmaccrypt.HmacCrypt		
+	crypt  *hmaccrypt.HmacCrypt
 	digest string
 }
 
@@ -25,7 +25,7 @@ func NewBCryptPassword(pswd string) (Password, error) {
 
 	p := BCryptPassword{
 		digest: string(digest),
-		crypt: crypt,
+		crypt:  crypt,
 	}
 
 	return &p, nil
@@ -33,5 +33,5 @@ func NewBCryptPassword(pswd string) (Password, error) {
 
 func (p *BCryptPassword) Compare(pswd string) error {
 
-	return p.crypt.BcryptCompare(p.digest, pswd)
+	return p.crypt.BcryptCompare([]byte(p.digest), []byte(pswd))
 }

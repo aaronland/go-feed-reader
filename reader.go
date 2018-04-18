@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/login"
+	"github.com/aaronland/go-feed-reader/password"
 	"github.com/aaronland/go-feed-reader/tables"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
@@ -127,7 +128,13 @@ func (fr *FeedReader) GetUserByUsername(name string) (user.User, error) {
 
 func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 
-	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", col, fr.u.Name())
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", col, fr.users.Name())
 	row := conn.QueryRow(sql, email)
 
 	var id string
@@ -135,7 +142,7 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 	var email string
 	var digest string
 
-	err := row.Scan(&id, &username, &email, &digest)
+	err = row.Scan(&id, &username, &email, &digest)
 
 	if err != nil {
 		return nil, err

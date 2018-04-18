@@ -63,7 +63,7 @@ func (t *UsersTable) InitializeTable(db sqlite.Database) error {
 }
 
 func (t *UsersTable) IndexRecord(db sqlite.Database, i interface{}) error {
-	user := i.(*User)
+	user := i.(user.User)
 	return t.IndexUser(db, user)
 }
 
@@ -93,7 +93,7 @@ func (t *UsersTable) IndexUser(db sqlite.Database, u user.User) error {
 
 	pswd := u.Password()
 
-	_, err = stmt.Exec(u.Name(), u.Email(), pswd.Digest(), "SALT")
+	_, err = stmt.Exec(u.Username(), u.Email(), pswd.Digest(), "SALT")
 
 	if err != nil {
 		return err

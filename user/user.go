@@ -23,7 +23,7 @@ type User interface {
 }
 
 func NewDefaultUser() (User, error) {
-	return errors.New("Please write me")
+	return nil, errors.New("Please write me")
 }
 
 type DefaultUser struct {
