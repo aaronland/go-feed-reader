@@ -11,9 +11,22 @@ type BCryptPassword struct {
 	digest string
 }
 
-func NewBCryptPassword(pswd string) (Password, error) {
+func NewBCryptPasswordFromDigest(digest string, salt string) (Password, error) {
 
-	pepper := []byte("randomly generated sequence stored on disk or in the source")
+	pepper := []byte(salt)
+	crypt := hmaccrypt.New(sha512.New, pepper)
+
+	p := BCryptPassword{
+		digest: digest,
+		crypt:  crypt,
+	}
+
+	return &p, nil
+}
+
+func NewBCryptPassword(pswd string, salt string) (Password, error) {
+
+	pepper := []byte(salt)
 	crypt := hmaccrypt.New(sha512.New, pepper)
 
 	b_pswd := []byte(pswd)

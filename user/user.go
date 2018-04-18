@@ -1,9 +1,8 @@
 package user
 
 import (
-	"errors"
 	"github.com/aaronland/go-feed-reader/password"
-	"net/mail"
+	_ "net/mail"
 )
 
 type UserDB interface {
@@ -18,19 +17,31 @@ type UserDB interface {
 type User interface {
 	Id() string
 	Username() string
-	Email() mail.Address
+	Email() string // mail.Address
 	Password() password.Password
 }
 
-func NewDefaultUser() (User, error) {
-	return nil, errors.New("Please write me")
+func IsNotExist(e error) bool {
+	return false
+}
+
+func NewDefaultUser(id string, username string, email string, password password.Password) (User, error) {
+
+	u := DefaultUser{
+		id:       id,
+		username: username,
+		email:    email,
+		password: password,
+	}
+
+	return &u, nil
 }
 
 type DefaultUser struct {
 	User
 	id       string
 	username string
-	email    mail.Address
+	email    string // mail.Address
 	password password.Password
 }
 
@@ -42,7 +53,7 @@ func (u *DefaultUser) Username() string {
 	return u.username
 }
 
-func (u *DefaultUser) Email() mail.Address {
+func (u *DefaultUser) Email() string { // mail.Address {
 	return u.email
 }
 

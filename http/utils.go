@@ -6,12 +6,12 @@ import (
 	gohttp "net/http"
 )
 
-func EnsureLoggedIn(cfg login.Config, udb user.UserDB, rsp gohttp.ResponseWriter, req *gohttp.Request) (user.User, error) {
+func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Request) user.User {
 
-	u, err := login.GetLoggedIn(cfg, udb, req)
+	u, err := login.GetLoggedIn(pr, req)
 
 	if user.IsNotExist(err) {
-		rsp.Redirect(cfg.SigninURL())
+		gohttp.Redirect(rsp, req, pr.SigninURL(), 303)
 		return nil
 	}
 

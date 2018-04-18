@@ -135,7 +135,7 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 	}
 
 	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", col, fr.users.Name())
-	row := conn.QueryRow(sql, email)
+	row := conn.QueryRow(sql, ref)
 
 	var id string
 	var username string
@@ -148,7 +148,8 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 		return nil, err
 	}
 
-	pswd, err := password.NewBCryptPasswordFromDigest(digest)
+	salt := "FIXME"
+	pswd, err := password.NewBCryptPasswordFromDigest(digest, salt)
 
 	if err != nil {
 		return nil, err

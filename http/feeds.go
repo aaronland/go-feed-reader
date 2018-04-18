@@ -37,7 +37,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		user := EnsureLoggedIn(fr, req)
+		user := EnsureLoggedIn(fr, rsp, req)
 
 		if user == nil {
 			return
