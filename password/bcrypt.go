@@ -2,21 +2,13 @@ package password
 
 import (
 	"crypto/sha512"
-	"github.com/pmylund/go-hmaccrypt"
+	"github.com/patrickmn/go-hmaccrypt"
 )
 
 type BCryptPassword struct {
 	Password
+	crypt *hmaccrypt.HmacCrypt		
 	digest string
-}
-
-func NewBCryptPasswordFromDigest(digest string) (Password, error) {
-
-	p := BCryptPassword{
-		digest: digest,
-	}
-
-	return &p, nil
 }
 
 func NewBCryptPassword(pswd string) (Password, error) {
@@ -25,17 +17,21 @@ func NewBCryptPassword(pswd string) (Password, error) {
 	crypt := hmaccrypt.New(sha512.New, pepper)
 
 	b_pswd := []byte(pswd)
-
 	digest, err := crypt.Bcrypt(b_pswd, 10)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return NewBCryptPasswordFromDigest(digest)
+	p := BCryptPassword{
+		digest: digest,
+		crypt: crypt,
+	}
+
+	return &p, nil
 }
 
 func (p *BCryptPassword) Compare(pswd string) error {
 
-	return crypt.BcryptCompare(p.diget, pswd)
+	return p.crypt.BcryptCompare(p.digest, pswd)
 }
