@@ -9,6 +9,7 @@ self:   prep rmdeps
 	mkdir -p src/github.com/aaronland/go-feed-reader
 	cp -r assets src/github.com/aaronland/go-feed-reader/
 	cp -r crumb src/github.com/aaronland/go-feed-reader/
+	cp -r login src/github.com/aaronland/go-feed-reader/
 	cp -r http src/github.com/aaronland/go-feed-reader/
 	cp -r password src/github.com/aaronland/go-feed-reader/
 	cp -r tables src/github.com/aaronland/go-feed-reader/

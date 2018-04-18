@@ -50,20 +50,20 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		}
 
 		/*
-		raw_feed := query.Get("feed")
-		
-		str_feed, err := sanitize.SanitizeString(raw_feed, sn_opts)
+			raw_feed := query.Get("feed")
 
-		if err != nil {
-			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
-			return
-		}
+			str_feed, err := sanitize.SanitizeString(raw_feed, sn_opts)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
+				return
+			}
 		*/
 
 		item, err := fr.GetItemByGUID(str_guid)
 
 		if err != nil {
-			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)		
+			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 			return
 		}
 

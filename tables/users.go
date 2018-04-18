@@ -2,6 +2,7 @@ package tables
 
 import (
 	"fmt"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
 )
@@ -9,13 +10,6 @@ import (
 type UsersTable struct {
 	sqlite.Table
 	name string
-}
-
-type User struct {
-	Id       int64
-	Name     string
-	Password string
-	Salt     string
 }
 
 func NewUsersTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
@@ -53,6 +47,7 @@ func (t *UsersTable) Schema() string {
 	sql := `CREATE TABLE %s (
 	    	id INTEGER PRIMARY KEY AUTO_INCREMENT,
 		name TEXT NOT NULL,
+		email TEXT NOT NULL,		
 		password TEXT NOT NULL,
 		salt TEXT NOT NULL
 	);
@@ -72,7 +67,7 @@ func (t *UsersTable) IndexRecord(db sqlite.Database, i interface{}) error {
 	return t.IndexUser(db, user)
 }
 
-func (t *UsersTable) IndexUser(db sqlite.Database, u *User) error {
+func (t *UsersTable) IndexUser(db sqlite.Database, u user.User) error {
 
 	conn, err := db.Conn()
 
@@ -83,7 +78,7 @@ func (t *UsersTable) IndexUser(db sqlite.Database, u *User) error {
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		name, password, salt
+		name, email, password, salt
 	) VALUES (
 	  	 ?, ?, ?
 	)`, t.Name())
@@ -96,7 +91,9 @@ func (t *UsersTable) IndexUser(db sqlite.Database, u *User) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(u.Name, u.Password, u.Salt)
+	pswd := u.Password()
+
+	_, err = stmt.Exec(u.Name(), u.Email(), pswd.Digest(), "SALT")
 
 	if err != nil {
 		return err

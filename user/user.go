@@ -6,7 +6,17 @@ import (
 	"net/mail"
 )
 
+type UserDB interface {
+	GetUserById(string) (User, error)
+	GetUserByEmail(string) (User, error)
+	GetUserByUsername(string) (User, error)
+	AddUser(User) error
+	// DeleteUser(User) error
+	// UpdateUser(User, ...) (User, error)
+}
+
 type User interface {
+	Id() string
 	Username() string
 	Email() mail.Address
 	Password() password.Password
@@ -18,19 +28,24 @@ func NewDefaultUser() (User, error) {
 
 type DefaultUser struct {
 	User
+	id       string
 	username string
 	email    mail.Address
 	password password.Password
 }
 
-func (u *DefaultUser) Username() {
+func (u *DefaultUser) Id() string {
+	return u.id
+}
+
+func (u *DefaultUser) Username() string {
 	return u.username
 }
 
-func (u *DefaultUser) Email() {
+func (u *DefaultUser) Email() mail.Address {
 	return u.email
 }
 
-func (u *DefaultUser) Password() {
+func (u *DefaultUser) Password() password.Password {
 	return u.password
 }

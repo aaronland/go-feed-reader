@@ -83,7 +83,7 @@ func main() {
 	mux.Handle("/", feeds_handler)
 	mux.Handle("/feeds", feeds_handler)
 	mux.Handle("/search", search_handler)
-	mux.Handle("/item", item_handler)	
+	mux.Handle("/item", item_handler)
 	mux.Handle("/add", add_handler)
 	mux.Handle("/recent", recent_handler)
 

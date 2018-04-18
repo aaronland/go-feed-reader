@@ -37,6 +37,12 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
+		user := EnsureLoggedIn(fr, req)
+
+		if user == nil {
+			return
+		}
+
 		pg_opts := pagination.NewDefaultPaginatedOptions()
 
 		query := req.URL.Query()

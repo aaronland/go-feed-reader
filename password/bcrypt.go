@@ -10,6 +10,15 @@ type BCryptPassword struct {
 	digest string
 }
 
+func NewBCryptPasswordFromDigest(digest string) (Password, error) {
+
+	p := BCryptPassword{
+		digest: digest,
+	}
+
+	return &p, nil
+}
+
 func NewBCryptPassword(pswd string) (Password, error) {
 
 	pepper := []byte("randomly generated sequence stored on disk or in the source")
@@ -23,11 +32,7 @@ func NewBCryptPassword(pswd string) (Password, error) {
 		return nil, err
 	}
 
-	p := BCryptPassword{
-		digest: digest,
-	}
-
-	return &p, nil
+	return NewBCryptPasswordFromDigest(digest)
 }
 
 func (p *BCryptPassword) Compare(pswd string) error {

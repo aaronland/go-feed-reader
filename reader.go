@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/tables"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
@@ -16,10 +17,12 @@ import (
 )
 
 type FeedReader struct {
+	user.UserDB
 	database *database.SQLiteDatabase
 	feeds    sqlite.Table
 	items    sqlite.Table
 	search   sqlite.Table
+	users    sqlite.Table
 	mu       *sync.Mutex
 }
 
@@ -82,6 +85,12 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
+	u, err := tables.NewUsersTableWithDatabase(db)
+
+	if err != nil {
+		return nil, err
+	}
+
 	mu := new(sync.Mutex)
 
 	fr := FeedReader{
@@ -89,10 +98,57 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		feeds:    f,
 		items:    i,
 		search:   s,
+		users:    u,
 		mu:       mu,
 	}
 
 	return &fr, nil
+}
+
+func (fr *FeedReader) GetUserById(id string) (user.User, error) {
+
+	return fr.getUser("id", id)
+}
+
+func (fr *FeedReader) GetUserByEmail(email string) (user.User, error) {
+
+	return fr.getUser("email", email)
+}
+
+func (fr *FeedReader) GetUserByUsername(name string) (user.User, error) {
+
+	return fr.getUser("username", name)
+}
+
+func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
+
+	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", col, fr.u.Name())
+	row := conn.QueryRow(sql, email)
+
+	var id string
+	var username string
+	var email string
+	var digest string
+
+	err := row.Scan(&id, &username, &email, &digest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	pswd, err := password.NewBCryptPasswordFromDigest(digest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := user.NewDefaultUser(id, username, email, pswd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
@@ -154,16 +210,16 @@ func (fr *FeedReader) RefreshFeeds() error {
 
 func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {
 
-     conn, err := fr.database.Conn()
+	conn, err := fr.database.Conn()
 
-     if err != nil {
-     	return nil, err
-     }
+	if err != nil {
+		return nil, err
+	}
 
-     sql := "SELECT body FROM items WHERE guid = ?"
-     row := conn.QueryRow(sql, guid)
+	sql := "SELECT body FROM items WHERE guid = ?"
+	row := conn.QueryRow(sql, guid)
 
-     return DatabaseRowToFeedItem(row)
+	return DatabaseRowToFeedItem(row)
 }
 
 func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
