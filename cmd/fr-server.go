@@ -59,6 +59,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	signin_handler, err := http.SigninHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	signup_handler, err := http.SignupHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+
 	go func() {
 
 		d := time.Duration(*refresh)
@@ -86,6 +99,9 @@ func main() {
 	mux.Handle("/item", item_handler)
 	mux.Handle("/add", add_handler)
 	mux.Handle("/recent", recent_handler)
+
+	mux.Handle("/signin", signin_handler)
+	mux.Handle("/signup", signup_handler)	
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)
