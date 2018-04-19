@@ -1,8 +1,9 @@
 package user
 
 import (
+	"errors"
 	"github.com/aaronland/go-feed-reader/password"
-	_ "net/mail"
+	"net/mail"
 )
 
 type UserDB interface {
@@ -23,6 +24,53 @@ type User interface {
 
 func IsNotExist(e error) bool {
 	return false
+}
+
+func NewDefaultUserRaw(udb UserDB, username string, email string, pswd password.Password) (User, error) {
+
+	if len(username) < 3 {
+		return nil, errors.New("Username too short")
+	}
+
+	if len(username) > 255 {
+		return nil, errors.New("Username too long")
+	}
+
+	e, err := mail.ParseAddress(email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	email = e.Address
+
+	u, err := udb.GetUserByEmail(email)
+
+	if err != nil && !IsNotExist(err) {
+		return nil, err
+	}
+
+	if u != nil {
+		return nil, errors.New("user already exists")
+	}
+
+	u, err = udb.GetUserByUsername(username)
+
+	if err != nil && !IsNotExist(err) {
+		return nil, err
+	}
+
+	if u != nil {
+		return nil, errors.New("user already exists")
+	}
+
+	u, err = NewDefaultUser(username, email, pswd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func NewDefaultUser(username string, email string, password password.Password) (User, error) {
