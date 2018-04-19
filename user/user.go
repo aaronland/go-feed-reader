@@ -25,7 +25,12 @@ func IsNotExist(e error) bool {
 	return false
 }
 
-func NewDefaultUser(id string, username string, email string, password password.Password) (User, error) {
+func NewDefaultUser(username string, email string, password password.Password) (User, error) {
+
+	return NewDefaultUserWithID("xxx", username, email, password)
+}
+
+func NewDefaultUserWithID(id string, username string, email string, password password.Password) (User, error) {
 
 	u := DefaultUser{
 		id:       id,

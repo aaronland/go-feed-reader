@@ -110,11 +110,11 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 // login.Provider methods
 
 func (fr *FeedReader) SigninURL() string {
-     return "/signin"
+	return "/signin"
 }
 
 func (fr *FeedReader) CookieSecret() string {
-     return "***"
+	return "***"
 }
 
 // user.User methods
@@ -163,7 +163,7 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 		return nil, err
 	}
 
-	u, err := user.NewDefaultUser(id, username, email, pswd)
+	u, err := user.NewDefaultUserWithID(id, username, email, pswd)
 
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 
 func (fr *FeedReader) AddUser(u user.User) error {
 
-     return fr.users.IndexRecord(fr.database, u)
+	return fr.users.IndexRecord(fr.database, u)
 }
 
 // feed reader methods
