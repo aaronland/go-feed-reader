@@ -6,10 +6,8 @@ import (
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/arschles/go-bindata-html-template"
-	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
-	// "net/mail"
 )
 
 type SigninVars struct {
@@ -66,60 +64,26 @@ func SigninHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		case "POST":
 
-			raw_email := req.PostFormValue("email")
-			raw_password := req.PostFormValue("password")
-			raw_crumb := req.PostFormValue("crumb")
-
-			opts := sanitize.DefaultOptions()
-
-			str_email, err := sanitize.SanitizeString(raw_email, opts)
+			str_email, err := PostString(req, "email")
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 				return
 			}
 
-			str_password, err := sanitize.SanitizeString(raw_password, opts)
+			str_password, err := PostString(req, "password")
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 				return
 			}
 
-			/* sudo put me in a function */
-
-			crumb_var, err := sanitize.SanitizeString(raw_crumb, opts)
-
-			if err != nil {
-				gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
-				return
-			}
-
-			if crumb_var == "" {
-				gohttp.Error(rsp, "Missing crumb", gohttp.StatusBadRequest)
-				return
-			}
-
-			ok, err := crumb.ValidateCrumb(crumb_var)
+			err = ValidateCrumb(fr, req)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 				return
 			}
-
-			if !ok {
-				gohttp.Error(rsp, "Invalid crumb", gohttp.StatusForbidden)
-				return
-			}
-
-			crumb_var, err = crumb.GenerateCrumb(req)
-
-			if err != nil {
-				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return
-			}
-
-			/* end of sudo put me in a function */
 
 			u, err := fr.GetUserByEmail(str_email)
 

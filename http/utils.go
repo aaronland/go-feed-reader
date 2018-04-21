@@ -1,10 +1,9 @@
 package http
 
 import (
+	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/user"
-	"github.com/aaronland/go-feed-reader/crumb"
-	"github.com/whosonfirst/go-sanitize"	
 	gohttp "net/http"
 )
 
@@ -25,37 +24,27 @@ func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Re
 	return u
 }
 
-func ValidateCrumb(pr login.Provider, req *gohttp.Request) (string, error) {
+func ValidateCrumb(pr login.Provider, req *gohttp.Request) error {
 
-	raw_crumb := req.PostFormValue("crumb")
-
-	sn_opts := sanitize.DefaultOptions()
-
-	crumb_var, err := sanitize.SanitizeString(raw_crumb, sn_opts)
+	crumb_var, err := PostString(req, "crumb")
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if crumb_var == "" {
-		return "", err
+		return err
 	}
 
 	ok, err := crumb.ValidateCrumb(crumb_var)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	if !ok {
-		return "", err
+		return err
 	}
 
-	crumb_var, err = crumb.GenerateCrumb(req)
-
-	if err != nil {
-		return "", err
-	}
-
-	return crumb_var, nil
+	return nil
 }

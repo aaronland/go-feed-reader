@@ -71,7 +71,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-
 	go func() {
 
 		d := time.Duration(*refresh)
@@ -101,7 +100,7 @@ func main() {
 	mux.Handle("/recent", recent_handler)
 
 	mux.Handle("/signin", signin_handler)
-	mux.Handle("/signup", signup_handler)	
+	mux.Handle("/signup", signup_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)

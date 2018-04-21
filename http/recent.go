@@ -7,7 +7,6 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
-	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
 	"net/url"
@@ -43,21 +42,14 @@ func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		query := req.URL.Query()
-
-		raw_page := query.Get("page")
-		raw_feed := query.Get("feed")
-
-		sn_opts := sanitize.DefaultOptions()
-
-		str_page, err := sanitize.SanitizeString(raw_page, sn_opts)
+		str_page, err := GetString(req, "page")
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 			return
 		}
 
-		str_feed, err := sanitize.SanitizeString(raw_feed, sn_opts)
+		str_feed, err := GetString(req, "feed")
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)

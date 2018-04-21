@@ -15,35 +15,35 @@ func init() {
 
 func GetString(req *gohttp.Request, param string) (string, error) {
 
-     q := req.URL.Query()
-     raw_value := q.Get(param)
-     return sanitize.SanitizeString(raw_value, sn_opts)		
+	q := req.URL.Query()
+	raw_value := q.Get(param)
+	return sanitize.SanitizeString(raw_value, sn_opts)
 }
 
 func PostString(req *gohttp.Request, param string) (string, error) {
 
-     raw_value := req.PostForm(param)
-     return sanitize.SanitizeString(raw_value, sn_opts)		
+	raw_value := req.PostFormValue(param)
+	return sanitize.SanitizeString(raw_value, sn_opts)
 }
 
-func GetInt64(req *gohttp.Request, param string) (int64, error){
+func GetInt64(req *gohttp.Request, param string) (int64, error) {
 
-     str_value, err := GetString(req, param)
+	str_value, err := GetString(req, param)
 
-     if err != nil {
-     	return -1, err
-     }
+	if err != nil {
+		return -1, err
+	}
 
-     return strconv.ParseInt(str_value, 10, 64)
+	return strconv.ParseInt(str_value, 10, 64)
 }
 
-func PostInt64(req *gohttp.Request, param string) (int64, error){
+func PostInt64(req *gohttp.Request, param string) (int64, error) {
 
-     str_value, err := PostString(req, param)
+	str_value, err := PostString(req, param)
 
-     if err != nil {
-     	return -1, err
-     }
+	if err != nil {
+		return -1, err
+	}
 
-     return strconv.ParseInt(str_value, 10, 64)
+	return strconv.ParseInt(str_value, 10, 64)
 }

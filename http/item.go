@@ -6,7 +6,6 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
-	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
 )
@@ -36,13 +35,7 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		query := req.URL.Query()
-
-		raw_guid := query.Get("guid")
-
-		sn_opts := sanitize.DefaultOptions()
-
-		str_guid, err := sanitize.SanitizeString(raw_guid, sn_opts)
+		str_guid, err := GetString(req, "guid")
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)

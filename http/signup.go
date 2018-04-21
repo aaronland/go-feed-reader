@@ -85,13 +85,13 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
-			crumb_var, err := ValidateCrumb(fr, req)
+			err = ValidateCrumb(fr, req)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
-				return						 
+				return
 			}
-			
+
 			/* make user stuff */
 
 			salt := "FIXME"

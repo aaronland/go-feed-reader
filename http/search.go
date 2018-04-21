@@ -7,7 +7,6 @@ import (
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
-	"github.com/whosonfirst/go-sanitize"
 	_ "log"
 	gohttp "net/http"
 	"net/url"
@@ -60,22 +59,17 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		query := req.URL.Query()
-		raw_q := query.Get("q")
-		raw_p := query.Get("page")
-
 		pg_opts := pagination.NewDefaultPaginatedOptions()
 		pg_opts.Column("feed")
 
-		sn_opts := sanitize.DefaultOptions()
-		q, err := sanitize.SanitizeString(raw_q, sn_opts)
+		q, err := GetString(req, "q")
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
 			return
 		}
 
-		p, err := sanitize.SanitizeString(raw_p, sn_opts)
+		p, err := GetString(req, "page")
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusBadRequest)
