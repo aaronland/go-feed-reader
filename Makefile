@@ -24,6 +24,7 @@ build:	fmt bin
 
 deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/zendesk/go-bindata/"
+	@GOPATH=$(GOPATH) go get -u "github.com/aaronland/go-secretbox"
 	@GOPATH=$(GOPATH) go get -u "github.com/aaronland/go-sql-pagination"
 	@GOPATH=$(GOPATH) go get -u "github.com/arschles/go-bindata-html-template"
 	@GOPATH=$(GOPATH) go get -u "github.com/mmcdole/gofeed"
