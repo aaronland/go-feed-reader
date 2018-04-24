@@ -122,3 +122,17 @@ func SetLoginCookie(pr Provider, rsp http.ResponseWriter, u user.User) error {
 	http.SetCookie(rsp, &cookie)
 	return nil
 }
+
+func DeleteLoginCookie(pr Provider, rsp http.ResponseWriter) error {
+
+	cfg := pr.CookieConfig()
+	
+	cookie := http.Cookie{
+		Name:  cfg.Name(),
+		Value: "",
+		MaxAge: -1,
+	}
+
+	http.SetCookie(rsp, &cookie)
+	return nil
+}
