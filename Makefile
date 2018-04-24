@@ -45,6 +45,7 @@ fmt:
 	go fmt cmd/*.go
 	go fmt crumb/*.go
 	go fmt http/*.go
+	go fmt login/*.go
 	go fmt password/*.go
 	go fmt tables/*.go
 	go fmt user/*.go
