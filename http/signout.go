@@ -35,7 +35,7 @@ func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		user := EnsureLoggedIn(fr, rsp, req)
 
 		if user == nil {
-		   	return 
+			return
 		}
 
 		switch req.Method {

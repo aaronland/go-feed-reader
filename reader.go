@@ -25,6 +25,7 @@ type FeedReader struct {
 	items          sqlite.Table
 	search         sqlite.Table
 	users          sqlite.Table
+	ck_cfg	       login.CookieConfig
 	mu             *sync.Mutex
 }
 
@@ -93,6 +94,12 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
+	ck_cfg, err := NewDefaultCookieConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
 	mu := new(sync.Mutex)
 
 	fr := FeedReader{
@@ -102,12 +109,47 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		search:   s,
 		users:    u,
 		mu:       mu,
+		ck_cfg:   ck_cfg,
 	}
 
 	return &fr, nil
 }
 
+type DefaultCookieConfig struct {
+	login.CookieConfig
+	salt   string
+	secret string
+	name   string
+}
+
+func (c *DefaultCookieConfig) Salt() string {
+	return c.salt
+}
+
+func (c *DefaultCookieConfig) Secret() string {
+	return c.secret
+}
+
+func (c *DefaultCookieConfig) Name() string {
+	return c.name
+}
+
+func NewDefaultCookieConfig() (login.CookieConfig, error) {
+
+	cfg := DefaultCookieConfig{
+		salt:   "salty",  // PLEASE FIX ME
+		secret: "cookie", // PLEASE FIX ME
+		name:   "fr",     // PLEASE FIX ME
+	}
+
+	return &cfg, nil
+}
+
 // login.Provider methods
+
+func (fr *FeedReader) CookieConfig() login.CookieConfig {
+	return fr.ck_cfg
+}
 
 func (fr *FeedReader) SigninURL() string {
 	return "/signin"

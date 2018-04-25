@@ -126,10 +126,10 @@ func SetLoginCookie(pr Provider, rsp http.ResponseWriter, u user.User) error {
 func DeleteLoginCookie(pr Provider, rsp http.ResponseWriter) error {
 
 	cfg := pr.CookieConfig()
-	
+
 	cookie := http.Cookie{
-		Name:  cfg.Name(),
-		Value: "",
+		Name:   cfg.Name(),
+		Value:  "",
 		MaxAge: -1,
 	}
 

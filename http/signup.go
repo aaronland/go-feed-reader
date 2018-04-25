@@ -111,7 +111,7 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			}
 
 			err = login.SetLoginCookie(fr, rsp, u)
-			
+
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 				return
