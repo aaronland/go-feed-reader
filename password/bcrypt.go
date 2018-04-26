@@ -45,7 +45,7 @@ func NewBCryptPassword(pswd string, salt string) (Password, error) {
 }
 
 func (p *BCryptPassword) Digest() string {
-     return p.digest
+	return p.digest
 }
 
 func (p *BCryptPassword) Compare(pswd string) error {

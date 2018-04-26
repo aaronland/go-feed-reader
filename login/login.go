@@ -1,10 +1,11 @@
 package login
 
 import (
-	_ "errors"
+	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-secretbox"
+	_ "log"
 	"net/http"
 	"strings"
 )
@@ -53,10 +54,8 @@ func GetLoggedIn(pr Provider, req *http.Request) (user.User, error) {
 
 	p := u.Password()
 
-	err = p.Compare(user_pswd)
-
-	if err != nil {
-		return nil, err
+	if p.Digest() != user_pswd {
+		return nil, errors.New("Invalid password")
 	}
 
 	return u, nil

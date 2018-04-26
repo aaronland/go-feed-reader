@@ -110,7 +110,7 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			}
 
 			log.Println("ADD USER", u)
-			
+
 			err = fr.AddUser(u)
 
 			if err != nil {

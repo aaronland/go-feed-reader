@@ -101,6 +101,13 @@ func SigninHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
+			err = login.SetLoginCookie(fr, rsp, u)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return
+			}
+
 			gohttp.Redirect(rsp, req, "/", 303)
 			return
 
