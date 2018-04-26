@@ -78,7 +78,7 @@ func (t *UsersTable) IndexUser(db sqlite.Database, u user.User) error {
 	tx, err := conn.Begin()
 
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
-		name, email, password, salt
+		name, email, password
 	) VALUES (
 	  	 ?, ?, ?
 	)`, t.Name())
@@ -93,7 +93,7 @@ func (t *UsersTable) IndexUser(db sqlite.Database, u user.User) error {
 
 	pswd := u.Password()
 
-	_, err = stmt.Exec(u.Username(), u.Email(), pswd.Digest(), "SALT")
+	_, err = stmt.Exec(u.Username(), u.Email(), pswd.Digest())
 
 	if err != nil {
 		return err

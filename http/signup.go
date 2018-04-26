@@ -8,7 +8,7 @@ import (
 	"github.com/aaronland/go-feed-reader/password"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/arschles/go-bindata-html-template"
-	_ "log"
+	"log"
 	gohttp "net/http"
 )
 
@@ -109,6 +109,8 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
+			log.Println("ADD USER", u)
+			
 			err = fr.AddUser(u)
 
 			if err != nil {
