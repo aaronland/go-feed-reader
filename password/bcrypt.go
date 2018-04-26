@@ -44,6 +44,10 @@ func NewBCryptPassword(pswd string, salt string) (Password, error) {
 	return &p, nil
 }
 
+func (p *BCryptPassword) Digest() string {
+     return p.digest
+}
+
 func (p *BCryptPassword) Compare(pswd string) error {
 
 	return p.crypt.BcryptCompare([]byte(p.digest), []byte(pswd))
