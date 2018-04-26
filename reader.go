@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,7 +26,7 @@ type FeedReader struct {
 	items          sqlite.Table
 	search         sqlite.Table
 	users          sqlite.Table
-	ck_cfg	       login.CookieConfig
+	ck_cfg         login.CookieConfig
 	mu             *sync.Mutex
 }
 
@@ -173,7 +174,7 @@ func (fr *FeedReader) GetUserByEmail(email string) (user.User, error) {
 
 func (fr *FeedReader) GetUserByUsername(name string) (user.User, error) {
 
-	return fr.getUser("username", name)
+	return fr.getUser("name", name)
 }
 
 func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
@@ -184,8 +185,8 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 		return nil, err
 	}
 
-	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s = ?", col, fr.users.Name())
-	row := conn.QueryRow(sql, ref)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE `%s` = ?", fr.users.Name(), col)
+	row := conn.QueryRow(query, ref)
 
 	var id string
 	var username string
@@ -195,6 +196,11 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 	err = row.Scan(&id, &username, &email, &digest)
 
 	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, &user.ErrNoUser{}
+		}
+
 		return nil, err
 	}
 
@@ -286,8 +292,8 @@ func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {
 		return nil, err
 	}
 
-	sql := "SELECT body FROM items WHERE guid = ?"
-	row := conn.QueryRow(sql, guid)
+	q := "SELECT body FROM items WHERE guid = ?"
+	row := conn.QueryRow(q, guid)
 
 	return DatabaseRowToFeedItem(row)
 }
@@ -302,11 +308,11 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 
 	// https://www.sqlite.org/fts5.html
 
-	sql := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
+	query := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
 
-	log.Println("SEARCH", sql, q)
+	log.Println("SEARCH", query, q)
 
-	rsp, err := pagination.QueryPaginated(conn, opts, sql, q)
+	rsp, err := pagination.QueryPaginated(conn, opts, query, q)
 
 	if err != nil {
 		return nil, err
@@ -346,9 +352,9 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 		feed := g[0]
 		guid := g[1]
 
-		sql := fmt.Sprintf("SELECT body FROM %s WHERE feed = ? AND guid = ?", fr.items.Name())
+		query := fmt.Sprintf("SELECT body FROM %s WHERE feed = ? AND guid = ?", fr.items.Name())
 
-		row := conn.QueryRow(sql, feed, guid)
+		row := conn.QueryRow(query, feed, guid)
 		item, err := DatabaseRowToFeedItem(row)
 
 		if err != nil {
@@ -446,12 +452,12 @@ func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 		return err
 	}
 
-	sql := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
+	query := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
 
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
 
-	return pagination.QueryPaginatedAll(conn, opts, cb, sql)
+	return pagination.QueryPaginatedAll(conn, opts, cb, query)
 }
 
 func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginatedOptions) (*FeedsResponse, error) {

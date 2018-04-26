@@ -103,6 +103,12 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			}
 
 			u, err := user.NewDefaultUserRaw(fr, str_username, str_email, pswd)
+
+			if err != nil {
+				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+				return
+			}
+
 			err = fr.AddUser(u)
 
 			if err != nil {

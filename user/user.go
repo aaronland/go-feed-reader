@@ -22,8 +22,22 @@ type User interface {
 	Password() password.Password
 }
 
+type ErrNoUser struct {
+	error
+}
+
+func (e *ErrNoUser) String() string {
+	return "User does not exist"
+}
+
 func IsNotExist(e error) bool {
-	return false
+
+	switch e.(type) {
+	case *ErrNoUser:
+		return true
+	default:
+		return false
+	}
 }
 
 func NewDefaultUserRaw(udb UserDB, username string, email string, pswd password.Password) (User, error) {

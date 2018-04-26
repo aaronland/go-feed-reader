@@ -79,7 +79,7 @@ func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
-			gohttp.Redirect(rsp, req, "/")
+			gohttp.Redirect(rsp, req, "/", 303)
 			return
 
 		default:

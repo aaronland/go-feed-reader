@@ -32,7 +32,7 @@ func NewUsersTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
 func NewUsersTable() (sqlite.Table, error) {
 
 	t := UsersTable{
-		name: "items",
+		name: "users",
 	}
 
 	return &t, nil
@@ -45,7 +45,7 @@ func (t *UsersTable) Name() string {
 func (t *UsersTable) Schema() string {
 
 	sql := `CREATE TABLE %s (
-	    	id INTEGER PRIMARY KEY AUTO_INCREMENT,
+	    	id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT NOT NULL,
 		email TEXT NOT NULL,		
 		password TEXT NOT NULL,
