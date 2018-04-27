@@ -4,6 +4,7 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/crumb"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
@@ -15,12 +16,14 @@ import (
 type FormVars struct {
 	PageTitle string
 	Crumb     string
+	User      user.User
 }
 
 type PostVars struct {
 	PageTitle string
 	Crumb     string
 	Items     []*gofeed.Item
+	User      user.User
 }
 
 func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -56,9 +59,9 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		user := EnsureLoggedIn(fr, rsp, req)
+		u := EnsureLoggedIn(fr, rsp, req)
 
-		if user == nil {
+		if u == nil {
 			return
 		}
 
@@ -75,6 +78,7 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			vars := FormVars{
 				PageTitle: "",
 				Crumb:     crumb_var,
+				User:      u,
 			}
 
 			err = t_form.Execute(rsp, vars)
@@ -134,6 +138,7 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				PageTitle: "",
 				Crumb:     crumb_var,
 				Items:     feed.Items,
+				User:      u,
 			}
 
 			err = p_form.Execute(rsp, vars)

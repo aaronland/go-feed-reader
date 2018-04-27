@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
@@ -13,6 +14,7 @@ import (
 type ItemVars struct {
 	PageTitle string
 	Item      *gofeed.Item
+	User      user.User
 }
 
 func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -34,6 +36,12 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	}
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
+
+		u := EnsureLoggedIn(fr, rsp, req)
+
+		if u == nil {
+			return
+		}
 
 		str_guid, err := GetString(req, "guid")
 
@@ -63,6 +71,7 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		vars := ItemVars{
 			PageTitle: item.Title,
 			Item:      item,
+			User:      u,
 		}
 
 		err = t.Execute(rsp, vars)

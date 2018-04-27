@@ -8,13 +8,13 @@ import (
 	"github.com/aaronland/go-feed-reader/password"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/arschles/go-bindata-html-template"
-	"log"
 	gohttp "net/http"
 )
 
 type SignupVars struct {
 	PageTitle string
 	Crumb     string
+	User      user.User
 }
 
 func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -51,6 +51,7 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			vars := SignupVars{
 				PageTitle: "",
 				Crumb:     crumb_var,
+				User:      nil,
 			}
 
 			err = s_form.Execute(rsp, vars)
@@ -108,8 +109,6 @@ func SignupHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 				return
 			}
-
-			log.Println("ADD USER", u)
 
 			err = fr.AddUser(u)
 

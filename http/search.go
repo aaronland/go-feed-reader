@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
@@ -15,6 +16,7 @@ import (
 
 type SearchFormVars struct {
 	PageTitle string
+	User      user.User
 }
 
 type ResultsVars struct {
@@ -23,6 +25,7 @@ type ResultsVars struct {
 	Query      string
 	Pagination pagination.Pagination
 	URL        *url.URL
+	User       user.User
 }
 
 func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -59,6 +62,12 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
+		u := EnsureLoggedIn(fr, rsp, req)
+
+		if u == nil {
+			return
+		}
+
 		pg_opts := pagination.NewDefaultPaginatedOptions()
 		pg_opts.Column("feed")
 
@@ -80,6 +89,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 			vars := SearchFormVars{
 				PageTitle: "",
+				User:      u,
 			}
 
 			err := query_t.ExecuteTemplate(rsp, "query", vars)
@@ -117,6 +127,7 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			Pagination: results.Pagination,
 			URL:        req.URL,
 			Query:      q,
+			User:       u,
 		}
 
 		err = results_t.ExecuteTemplate(rsp, "results", vars)

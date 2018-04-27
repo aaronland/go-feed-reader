@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
+	"github.com/aaronland/go-feed-reader/user"	
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
@@ -14,6 +15,7 @@ type SignoutVars struct {
 	PageTitle string
 	Crumb     string
 	Error     error
+	User      user.User
 }
 
 func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -32,9 +34,9 @@ func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		user := EnsureLoggedIn(fr, rsp, req)
+		u := EnsureLoggedIn(fr, rsp, req)
 
-		if user == nil {
+		if u == nil {
 			return
 		}
 
@@ -52,6 +54,7 @@ func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				PageTitle: "",
 				Crumb:     crumb_var,
 				Error:     nil,
+				User:      u,
 			}
 
 			err = s_form.Execute(rsp, vars)

@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
 	_ "github.com/grokify/html-strip-tags-go"
@@ -17,6 +18,7 @@ type FeedVars struct {
 	Feeds      []*gofeed.Feed
 	Pagination pagination.Pagination
 	URL        *url.URL
+	User       user.User
 }
 
 func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -37,9 +39,9 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
 
-		user := EnsureLoggedIn(fr, rsp, req)
+		u := EnsureLoggedIn(fr, rsp, req)
 
-		if user == nil {
+		if u == nil {
 			return
 		}
 
@@ -72,6 +74,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			Feeds:      results.Feeds,
 			Pagination: results.Pagination,
 			URL:        req.URL,
+			User:       u,
 		}
 
 		err = t.Execute(rsp, vars)

@@ -5,6 +5,7 @@ import (
 	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/arschles/go-bindata-html-template"
 	_ "log"
 	gohttp "net/http"
@@ -14,6 +15,7 @@ type SigninVars struct {
 	PageTitle string
 	Crumb     string
 	Error     error
+	User      user.User
 }
 
 func SigninHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -51,6 +53,7 @@ func SigninHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				PageTitle: "",
 				Crumb:     crumb_var,
 				Error:     nil,
+				User:      nil,
 			}
 
 			err = s_form.Execute(rsp, vars)

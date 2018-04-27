@@ -3,6 +3,7 @@ package http
 import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/assets/html"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
 	"github.com/arschles/go-bindata-html-template"
 	"github.com/grokify/html-strip-tags-go"
@@ -18,6 +19,7 @@ type RecentItemsVars struct {
 	Items      []*gofeed.Item
 	Pagination pagination.Pagination
 	URL        *url.URL
+	User       user.User
 }
 
 func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
@@ -41,6 +43,12 @@ func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	}
 
 	fn := func(rsp gohttp.ResponseWriter, req *gohttp.Request) {
+
+		u := EnsureLoggedIn(fr, rsp, req)
+
+		if u == nil {
+			return
+		}
 
 		str_page, err := GetString(req, "page")
 
@@ -96,6 +104,7 @@ func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			Items:      q_rsp.Items,
 			Pagination: q_rsp.Pagination,
 			URL:        req.URL,
+			User:       u,
 		}
 
 		err = t.Execute(rsp, vars)
