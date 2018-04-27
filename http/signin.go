@@ -2,12 +2,9 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/user"
-	"github.com/arschles/go-bindata-html-template"
-	_ "log"
 	gohttp "net/http"
 )
 
@@ -26,7 +23,7 @@ func SigninHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	s_form, err := template.New("signin_form", html.Asset).ParseFiles(form_files...)
+	s_form, err := CompileTemplate("signin_form", form_files...)
 
 	if err != nil {
 		return nil, err

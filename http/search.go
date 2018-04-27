@@ -2,13 +2,9 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
-	"github.com/arschles/go-bindata-html-template"
-	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
-	_ "log"
 	gohttp "net/http"
 	"net/url"
 	"strconv"
@@ -44,17 +40,14 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	results_funcs := template.FuncMap{
-		"strip_tags": strip.StripTags,
-	}
 
-	query_t, err := template.New("query", html.Asset).ParseFiles(query_files...)
+	query_t, err := CompileTemplate("query", query_files...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	results_t, err := template.New("results", html.Asset).Funcs(results_funcs).ParseFiles(results_files...)
+	results_t, err := CompileTemplate("results", results_files...)
 
 	if err != nil {
 		return nil, err

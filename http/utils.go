@@ -4,8 +4,20 @@ import (
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/user"
+	"github.com/aaronland/go-feed-reader/assets/html"
 	gohttp "net/http"
+	"github.com/arschles/go-bindata-html-template"
+	"github.com/grokify/html-strip-tags-go"
 )
+
+func CompileTemplate(name string, files ...string) (*template.Template, error) {
+
+	funcs := template.FuncMap{
+		"strip_tags": strip.StripTags,
+	}
+
+	return template.New(name, html.Asset).Funcs(funcs).ParseFiles(files...)
+}
 
 func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Request) user.User {
 
@@ -17,6 +29,12 @@ func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Re
 	}
 
 	if err != nil {
+
+		if err == gohttp.ErrNoCookie {
+			gohttp.Redirect(rsp, req, pr.SigninURL(), 303)
+			return nil
+		}
+		
 		gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 		return nil
 	}

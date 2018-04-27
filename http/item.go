@@ -2,10 +2,7 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/user"
-	"github.com/arschles/go-bindata-html-template"
-	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	_ "log"
 	gohttp "net/http"
@@ -25,11 +22,7 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	funcs := template.FuncMap{
-		"strip_tags": strip.StripTags,
-	}
-
-	t, err := template.New("item", html.Asset).Funcs(funcs).ParseFiles(files...)
+	t, err := CompileTemplate("item", files...)
 
 	if err != nil {
 		return nil, err

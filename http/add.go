@@ -2,11 +2,8 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/user"
-	"github.com/arschles/go-bindata-html-template"
-	"github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	_ "log"
 	gohttp "net/http"
@@ -41,17 +38,13 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	t_form, err := template.New("add_form", html.Asset).ParseFiles(form_files...)
+	t_form, err := CompileTemplate("add_form", form_files...)
 
 	if err != nil {
 		return nil, err
 	}
 
-	funcs := template.FuncMap{
-		"strip_tags": strip.StripTags,
-	}
-
-	p_form, err := template.New("add_form", html.Asset).Funcs(funcs).ParseFiles(post_files...)
+	p_form, err := CompileTemplate("add_form", post_files...)
 
 	if err != nil {
 		return nil, err

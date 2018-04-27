@@ -2,11 +2,8 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/assets/html"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-sql-pagination"
-	"github.com/arschles/go-bindata-html-template"
-	_ "github.com/grokify/html-strip-tags-go"
 	"github.com/mmcdole/gofeed"
 	gohttp "net/http"
 	"net/url"
@@ -31,7 +28,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-	t, err := template.New("feeds", html.Asset).ParseFiles(files...)
+	t, err := CompileTemplate("feeds", files...)
 
 	if err != nil {
 		return nil, err
