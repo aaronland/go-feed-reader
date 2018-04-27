@@ -38,6 +38,11 @@ func GetLoggedIn(pr Provider, req *http.Request) (user.User, error) {
 	cookie, err := GetLoginCookie(pr, req)
 
 	if err != nil {
+
+		if err == http.ErrNoCookie {
+			return nil, &user.ErrNoUser{}
+		}
+
 		return nil, err
 	}
 

@@ -30,7 +30,7 @@ func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 	}
 
 	t, err := CompileTemplate("items", files...)
-	
+
 	if err != nil {
 		return nil, err
 	}

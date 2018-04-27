@@ -29,6 +29,12 @@ func main() {
 
 	go fr.RefreshFeeds()
 
+	index_handler, err := http.IndexHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	feeds_handler, err := http.FeedsHandler(fr)
 
 	if err != nil {
@@ -65,6 +71,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	signout_handler, err := http.SignoutHandler(fr)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	signup_handler, err := http.SignupHandler(fr)
 
 	if err != nil {
@@ -92,7 +104,7 @@ func main() {
 
 	mux := gohttp.NewServeMux()
 
-	mux.Handle("/", feeds_handler)
+	mux.Handle("/", index_handler)
 	mux.Handle("/feeds", feeds_handler)
 	mux.Handle("/search", search_handler)
 	mux.Handle("/item", item_handler)
@@ -100,6 +112,7 @@ func main() {
 	mux.Handle("/recent", recent_handler)
 
 	mux.Handle("/signin", signin_handler)
+	mux.Handle("/signout", signout_handler)
 	mux.Handle("/signup", signup_handler)
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)

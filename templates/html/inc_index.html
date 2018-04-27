@@ -1,0 +1,8 @@
+{{ if .User }}
+<ul>
+	  <li><a href="/recent">recent</a></li>      	  
+	  <li><a href="/feeds">feed/a></li>
+</ul>
+{{ else }}
+<p>Please <a href="/signin">sign in</a> or <a href="/signup">create a new account</a>.</p>
+{{ end }}

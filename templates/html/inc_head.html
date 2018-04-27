@@ -17,9 +17,14 @@
 
       <div id="nav">
 	<ul>
-	  <li><a href="/">home</a></li>
-	  <li><a href="/recent">recent</a></li>      
-	  <li><a href="/add">add</a></li>      
+	  {{ if .User }}
+	  <li><a href="/recent">recent</a></li>      	  
+	  <li><a href="/feeds">feeds</a></li>
+	  <li><a href="/add">add feed</a></li>
+	  <li><a href="/signout">sign out</a></li>
+	 {{ else }}
+	 <li><a href="/signin">sign in</a></li>
+	 {{ end }}
 	</ul>
       </div>
       

@@ -40,7 +40,6 @@ func SearchHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		"templates/html/inc_foot.html",
 	}
 
-
 	query_t, err := CompileTemplate("query", query_files...)
 
 	if err != nil {
