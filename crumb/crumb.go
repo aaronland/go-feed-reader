@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
+var sep string = "-"
+
 func GenerateCrumb(req *http.Request, extra ...string) (string, error) {
 
-	key := req.URL.Path
-
-	crumb_base, err := CrumbBase(req, key, extra...)
+	crumb_base, err := CrumbBase(req, extra...)
 
 	if err != nil {
 		return "", err
@@ -25,21 +25,46 @@ func GenerateCrumb(req *http.Request, extra ...string) (string, error) {
 
 	now := time.Now()
 
-	crumb_var := fmt.Sprintf("%d-%s-SNOWMAN", now.Unix(), crumb_hash)
+	crumb_parts := []string{
+		strconv.Itoa(time.Unix()),
+		crumb_hash,
+		"SNOWMAN",
+	}
 
+	crumb_var := strings.Join(crumb_parts, sep)
 	return crumb_var, nil
 }
 
-func ValidateCrumb(crumb_var string) (bool, error) {
+func ValidateCrumb(req *gohttp.Request, crumb_var string, ttl int, extra ...string) (bool, error) {
+
+	crumb_parts := strings.Split(crumb_var, sep)
+
+	if ttl > 0 {
+
+	}
+
+	crumb_base, err := CrumbBase(req, extra...)
+
+	if err != nil {
+		return false, err
+	}
+
+	crumb_hash, err := CrumbHash(crumb_base)
 
 	return true, nil
 }
 
+func CrumbKey(req *http.Request) string {
+	return req.URL.Path
+}
+
 func CrumbBase(req *http.Request, key string, extra ...string) (string, error) {
+
+	crumb_key := CrumbKey(req)
 
 	base := make([]string, 0)
 
-	base = append(base, key)
+	base = append(base, crumb_key)
 
 	for _, e := range extra {
 		base = append(base, e)
