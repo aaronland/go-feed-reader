@@ -43,9 +43,12 @@ func GenerateCrumb(req *http.Request, cfg CrumbConfig, extra ...string) (string,
 	}
 
 	now := time.Now()
+	// ts := now.Format(time.Unix)
+
+	ts := now.Unix()
 
 	crumb_parts := []string{
-		strconv.Itoa(time.Unix()),
+		strconv.FormatInt(ts, 10),
 		crumb_hash,
 		cfg.Snowman,
 	}
@@ -54,13 +57,13 @@ func GenerateCrumb(req *http.Request, cfg CrumbConfig, extra ...string) (string,
 	return crumb_var, nil
 }
 
-func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int, extra ...string) (bool, error) {
+func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int64, extra ...string) (bool, error) {
 
 	crumb_parts := strings.Split(crumb_var, sep)
 
 	if ttl > 0 {
 
-		then, err := strconv.Atoi(crumb_parts[0])
+		then, err := strconv.ParseInt(crumb_parts[0], 10, 64)
 
 		if err != nil {
 			return false, err
@@ -69,7 +72,7 @@ func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int
 		now := time.Now()
 		ts := now.Unix()
 
-		if now-then > ttl {
+		if ts-then > ttl {
 			return false, errors.New("Crumb has expired")
 		}
 	}
