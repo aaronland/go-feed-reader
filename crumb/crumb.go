@@ -1,8 +1,11 @@
 package crumb
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
-	"github.com/aaronland/go-secretbox"
+	"fmt"
+	_ "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -11,14 +14,8 @@ import (
 
 var sep string = "-"
 
-type CrumbProvider interface {
-	GenerateCrumb(*http.Request, ...string) (string, error)
-	ValidateCrumb(*http.Request, string, int64, ...string) (bool, error)
-}
-
 type CrumbConfig struct {
 	Snowman string
-	Salt    string
 	Secret  string
 }
 
@@ -26,7 +23,6 @@ func NewCrumbConfig() CrumbConfig {
 
 	cfg := CrumbConfig{
 		Snowman: "SNOWMAN",
-		Salt:    "salt",
 		Secret:  "secret",
 	}
 
@@ -66,9 +62,16 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, crumb_var string, ttl int
 
 	crumb_parts := strings.Split(crumb_var, sep)
 
+	if len(crumb_parts) != 3 {
+		return false, errors.New("Malformed crumb")
+	}
+
+	crumb_ts := crumb_parts[0]
+	crumb_hash := crumb_parts[1]
+
 	if ttl > 0 {
 
-		then, err := strconv.ParseInt(crumb_parts[0], 10, 64)
+		then, err := strconv.ParseInt(crumb_ts, 10, 64)
 
 		if err != nil {
 			return false, err
@@ -88,14 +91,17 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, crumb_var string, ttl int
 		return false, err
 	}
 
-	crumb_hash, err := HashCrumb(cfg, crumb_base)
+	crumb_test, err := HashCrumb(cfg, crumb_base)
 
-	if len(crumb_hash) != len(crumb_var) {
-		return false, errors.New("Invalid crumb")
+	// log.Printf("TEST '%s' INPUT '%s' (%s)\n", crumb_test, crumb_hash, crumb_base)
+
+	if len(crumb_hash) != len(crumb_test) {
+		return false, errors.New(fmt.Sprintf("Invalid crumb (1) got '%s' expected '%s' base '%s'", crumb_var, crumb_test, crumb_base))
 	}
 
-	if crumb_hash != crumb_var {
-		return false, errors.New("Invalid crumb")
+	if crumb_hash != crumb_test {
+		return false, errors.New(fmt.Sprintf("Invalid crumb (2) got '%s' expected '%s' base '%s'", crumb_var, crumb_test, crumb_base))
+
 	}
 
 	return true, nil
@@ -124,16 +130,11 @@ func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, err
 
 func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 
-	opts := secretbox.NewSecretboxOptions()
-	opts.Salt = cfg.Salt
+	body := []byte(raw)
 
-	sb, err := secretbox.NewSecretbox(cfg.Secret, opts)
-
-	enc, err := sb.Lock([]byte(raw))
-
-	if err != nil {
-		return "", err
-	}
+	h := sha256.New()
+	hash := h.Sum(body)
+	enc := hex.EncodeToString(hash[:])
 
 	return enc, nil
 }
