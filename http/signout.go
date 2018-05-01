@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/aaronland/go-feed-reader"
-	"github.com/aaronland/go-feed-reader/crumb"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/user"
 	gohttp "net/http"
@@ -40,7 +39,7 @@ func SignoutHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		switch req.Method {
 		case "GET":
 
-			crumb_var, err := crumb.GenerateCrumb(req)
+			crumb_var, err := GenerateCrumb(fr, req)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

@@ -11,6 +11,11 @@ import (
 
 var sep string = "-"
 
+type CrumbProvider interface {
+	GenerateCrumb(*http.Request, ...string) (string, error)
+	ValidateCrumb(*http.Request, string, int64, ...string) (bool, error)
+}
+
 type CrumbConfig struct {
 	Snowman string
 	Salt    string
@@ -28,9 +33,9 @@ func NewCrumbConfig() CrumbConfig {
 	return cfg
 }
 
-func GenerateCrumb(req *http.Request, cfg CrumbConfig, extra ...string) (string, error) {
+func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string, error) {
 
-	crumb_base, err := CrumbBase(req, cfg, extra...)
+	crumb_base, err := CrumbBase(cfg, req, extra...)
 
 	if err != nil {
 		return "", err
@@ -57,7 +62,7 @@ func GenerateCrumb(req *http.Request, cfg CrumbConfig, extra ...string) (string,
 	return crumb_var, nil
 }
 
-func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int64, extra ...string) (bool, error) {
+func ValidateCrumb(cfg CrumbConfig, req *http.Request, crumb_var string, ttl int64, extra ...string) (bool, error) {
 
 	crumb_parts := strings.Split(crumb_var, sep)
 
@@ -77,7 +82,7 @@ func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int
 		}
 	}
 
-	crumb_base, err := CrumbBase(req, cfg, extra...)
+	crumb_base, err := CrumbBase(cfg, req, extra...)
 
 	if err != nil {
 		return false, err
@@ -96,13 +101,13 @@ func ValidateCrumb(req *http.Request, cfg CrumbConfig, crumb_var string, ttl int
 	return true, nil
 }
 
-func CrumbKey(req *http.Request, cfg CrumbConfig) string {
+func CrumbKey(cfg CrumbConfig, req *http.Request) string {
 	return req.URL.Path
 }
 
-func CrumbBase(req *http.Request, cfg CrumbConfig, extra ...string) (string, error) {
+func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, error) {
 
-	crumb_key := CrumbKey(req, cfg)
+	crumb_key := CrumbKey(cfg, req)
 
 	base := make([]string, 0)
 
