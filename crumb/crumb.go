@@ -1,10 +1,11 @@
 package crumb
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
+	_ "fmt"
 	_ "log"
 	"net/http"
 	"strconv"
@@ -93,18 +94,11 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, crumb_var string, ttl int
 
 	crumb_test, err := HashCrumb(cfg, crumb_base)
 
-	// log.Printf("TEST '%s' INPUT '%s' (%s)\n", crumb_test, crumb_hash, crumb_base)
-
-	if len(crumb_hash) != len(crumb_test) {
-		return false, errors.New(fmt.Sprintf("Invalid crumb (1) got '%s' expected '%s' base '%s'", crumb_var, crumb_test, crumb_base))
+	if err != nil {
+		return false, err
 	}
 
-	if crumb_hash != crumb_test {
-		return false, errors.New(fmt.Sprintf("Invalid crumb (2) got '%s' expected '%s' base '%s'", crumb_var, crumb_test, crumb_base))
-
-	}
-
-	return true, nil
+	return CompareHashes(crumb_hash, crumb_test)
 }
 
 func CrumbKey(cfg CrumbConfig, req *http.Request) string {
@@ -128,13 +122,33 @@ func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, err
 	return str_base, nil
 }
 
+func CompareHashes(this_enc string, that_enc string) (bool, error) {
+
+	this_hash, err := hex.DecodeString(this_enc)
+
+	if err != nil {
+		return false, err
+	}
+
+	that_hash, err := hex.DecodeString(that_enc)
+
+	if err != nil {
+		return false, err
+	}
+
+	match := hmac.Equal(this_hash, that_hash)
+	return match, nil
+}
+
 func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 
-	body := []byte(raw)
+	msg := []byte(raw)
+	key := []byte(cfg.Secret)
 
-	h := sha256.New()
-	hash := h.Sum(body)
+	mac := hmac.New(sha256.New, key)
+	mac.Write(msg)
+	hash := mac.Sum(nil)
+
 	enc := hex.EncodeToString(hash[:])
-
 	return enc, nil
 }
