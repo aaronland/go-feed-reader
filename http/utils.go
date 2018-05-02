@@ -44,7 +44,7 @@ func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Re
 
 func GenerateCrumb(pr login.Provider, req *gohttp.Request, extra ...string) (string, error) {
 
-	cfg := crumb.NewCrumbConfig()
+	cfg := crumb.DefaultCrumbConfig()
 	return crumb.GenerateCrumb(cfg, req, extra...)
 }
 
@@ -56,13 +56,9 @@ func ValidateCrumb(pr login.Provider, req *gohttp.Request) error {
 		return err
 	}
 
-	if crumb_var == "" {
-		return err
-	}
+	cfg := crumb.DefaultCrumbConfig()
 
-	cfg := crumb.NewCrumbConfig()
-
-	ok, err := crumb.ValidateCrumb(cfg, req, crumb_var, 10)
+	ok, err := crumb.ValidateCrumb(cfg, req, crumb_var)
 
 	if err != nil {
 		return err

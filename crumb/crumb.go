@@ -9,8 +9,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-secretbox/salt"
 	"io"
-	_ "log"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -18,17 +19,39 @@ import (
 )
 
 var sep string = "-"
+var secret string
+var prefix string
 
-type CrumbConfig struct {
-	Snowman string
-	Secret  string
+func init() {
+
+     opts := salt.DefaultSaltOptions()
+     opts.Length = 32
+     
+     var s *salt.Salt
+     
+     s, _= salt.NewRandomSalt(opts)
+     secret = s.String()
+
+     log.Println("SECRET", secret, len(secret))
+     
+     s, _= salt.NewRandomSalt(opts)
+     prefix = s.String()
+
+     log.Println("PREFIX", prefix, len(prefix))
 }
 
-func NewCrumbConfig() CrumbConfig {
+type CrumbConfig struct {
+	Prefix string
+	Secret  string
+	TTL	int64
+}
+
+func DefaultCrumbConfig() CrumbConfig {
 
 	cfg := CrumbConfig{
-		Snowman: "SNOWMAN",
-		Secret:  "secretsdfsjdfhskdhfskdhfskjdfhw4",
+		Prefix: prefix,
+		Secret:  secret,
+		TTL: 0,
 	}
 
 	return cfg
@@ -64,7 +87,7 @@ func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string,
 	return enc_var, nil
 }
 
-func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, ttl int64, extra ...string) (bool, error) {
+func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, extra ...string) (bool, error) {
 
 	crumb_var, err := Decrypt(cfg, enc_var)
 
@@ -103,7 +126,7 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, ttl int64
 		return false, errors.New("Crumb mismatch")
 	}
 
-	if ttl > 0 {
+	if cfg.TTL > 0 {
 
 		then, err := strconv.ParseInt(crumb_ts, 10, 64)
 
@@ -114,7 +137,7 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, ttl int64
 		now := time.Now()
 		ts := now.Unix()
 
-		if ts-then > ttl {
+		if ts-then > cfg.TTL {
 			return false, errors.New("Crumb has expired")
 		}
 	}
@@ -123,7 +146,7 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, ttl int64
 }
 
 func CrumbKey(cfg CrumbConfig, req *http.Request) string {
-	return fmt.Sprintf("%s-%s", cfg.Snowman, req.URL.Path)
+	return fmt.Sprintf("%s-%s", cfg.Prefix, req.URL.Path)
 }
 
 func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, error) {
