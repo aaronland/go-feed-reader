@@ -1,0 +1,10 @@
+{{ if .Error }}
+<p>Error: {{ .Error }}</p>
+{{ end }}
+
+<form method="POST">
+  <input type="hidden" name="crumb" value="{{ .Crumb }}" />
+  <button type="submit">Test</button>
+
+  <p>{{ .Crumb }}</p>
+</form>

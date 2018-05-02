@@ -62,7 +62,7 @@ func ValidateCrumb(pr login.Provider, req *gohttp.Request) error {
 
 	cfg := crumb.NewCrumbConfig()
 
-	ok, err := crumb.ValidateCrumb(cfg, req, crumb_var, 0)
+	ok, err := crumb.ValidateCrumb(cfg, req, crumb_var, 10)
 
 	if err != nil {
 		return err
