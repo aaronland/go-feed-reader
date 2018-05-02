@@ -45,12 +45,12 @@ func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string,
 	}
 
 	now := time.Now()
-	// ts := now.Format(time.Unix)
-
 	ts := now.Unix()
 
+	str_ts := strconv.FormatInt(ts, 10)
+
 	crumb_parts := []string{
-		strconv.FormatInt(ts, 10),
+		str_ts,
 		crumb_hash,
 		cfg.Snowman,
 	}
@@ -112,6 +112,7 @@ func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, err
 	base := make([]string, 0)
 
 	base = append(base, crumb_key)
+	base = append(base, req.UserAgent())
 
 	for _, e := range extra {
 		base = append(base, e)
