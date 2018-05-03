@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/aaronland/go-secretbox/salt"
 	"io"
-	"log"
+	_ "log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,39 +19,41 @@ import (
 )
 
 var sep string = "-"
-var secret string
+var hmac_secret string
+var aes_secret string
 var prefix string
 
 func init() {
 
-     opts := salt.DefaultSaltOptions()
-     opts.Length = 32
-     
-     var s *salt.Salt
-     
-     s, _= salt.NewRandomSalt(opts)
-     secret = s.String()
+	opts := salt.DefaultSaltOptions()
+	opts.Length = 32
 
-     log.Println("SECRET", secret, len(secret))
-     
-     s, _= salt.NewRandomSalt(opts)
-     prefix = s.String()
+	var s *salt.Salt
 
-     log.Println("PREFIX", prefix, len(prefix))
+	s, _ = salt.NewRandomSalt(opts)
+	hmac_secret = s.String()
+
+	s, _ = salt.NewRandomSalt(opts)
+	aes_secret = s.String()
+
+	s, _ = salt.NewRandomSalt(opts)
+	prefix = s.String()
 }
 
 type CrumbConfig struct {
-	Prefix string
-	Secret  string
-	TTL	int64
+	Prefix     string
+	HMACSecret string
+	AESSecret  string
+	TTL        int64
 }
 
 func DefaultCrumbConfig() CrumbConfig {
 
 	cfg := CrumbConfig{
-		Prefix: prefix,
-		Secret:  secret,
-		TTL: 0,
+		Prefix:     prefix,
+		HMACSecret: hmac_secret,
+		AESSecret:  aes_secret,
+		TTL:        0,
 	}
 
 	return cfg
@@ -78,7 +80,7 @@ func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string,
 
 	crumb_var := fmt.Sprintf("%s-%s", str_ts, crumb_hash)
 
-	enc_var, err := Encrypt(cfg, crumb_var)
+	enc_var, err := EncryptCrumb(cfg, crumb_var)
 
 	if err != nil {
 		return "", err
@@ -89,7 +91,7 @@ func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string,
 
 func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, extra ...string) (bool, error) {
 
-	crumb_var, err := Decrypt(cfg, enc_var)
+	crumb_var, err := DecryptCrumb(cfg, enc_var)
 
 	if err != nil {
 		return false, err
@@ -188,7 +190,7 @@ func CompareHashes(this_enc string, that_enc string) (bool, error) {
 func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 
 	msg := []byte(raw)
-	key := []byte(cfg.Secret)
+	key := []byte(cfg.HMACSecret)
 
 	mac := hmac.New(sha256.New, key)
 	mac.Write(msg)
@@ -201,10 +203,10 @@ func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 // https://gist.github.com/manishtpatel/8222606
 // https://github.com/blaskovicz/go-cryptkeeper/blob/master/encrypted_string.go
 
-func Encrypt(cfg CrumbConfig, text string) (string, error) {
+func EncryptCrumb(cfg CrumbConfig, text string) (string, error) {
 
 	plaintext := []byte(text)
-	secret := []byte(cfg.Secret)
+	secret := []byte(cfg.AESSecret)
 
 	block, err := aes.NewCipher(secret)
 
@@ -225,15 +227,15 @@ func Encrypt(cfg CrumbConfig, text string) (string, error) {
 	return hex.EncodeToString(ciphertext), nil
 }
 
-func Decrypt(cfg CrumbConfig, cryptoText string) (string, error) {
+func DecryptCrumb(cfg CrumbConfig, enc_crumb string) (string, error) {
 
-	ciphertext, err := hex.DecodeString(cryptoText)
+	ciphertext, err := hex.DecodeString(enc_crumb)
 
 	if err != nil {
 		return "", err
 	}
 
-	secret := []byte(cfg.Secret)
+	secret := []byte(cfg.AESSecret)
 	block, err := aes.NewCipher(secret)
 
 	if err != nil {

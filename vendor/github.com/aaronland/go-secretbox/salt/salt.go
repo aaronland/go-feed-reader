@@ -90,6 +90,8 @@ func NewRandomSalt(opts *SaltOptions) (*Salt, error) {
 
 	var last string
 
+	b := 0
+	
 	for len(strings.Join(result, "")) < opts.Length {
 
 		j := r.Intn(count)
@@ -100,8 +102,17 @@ func NewRandomSalt(opts *SaltOptions) (*Salt, error) {
 			continue
 		}
 
-		result = append(result, c)
 		last = c
+		
+		b += len(c)
+
+		if b <= opts.Length {
+		     result = append(result, c)
+		} else {
+
+		     result = result[0:len(result)-2]
+		     b = len(strings.Join(result, ""))
+		}
 	}
 
 	s := strings.Join(result, "")
