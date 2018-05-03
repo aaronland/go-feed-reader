@@ -8,7 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aaronland/go-secretbox/salt"
+	"github.com/aaronland/go-string/random"
 	"io"
 	_ "log"
 	"net/http"
@@ -19,26 +19,26 @@ import (
 
 var sep string
 var secret string
-var prefix string
+var extra string
 
 func init() {
 
-	opts := salt.DefaultSaltOptions()
+	opts := random.DefaultOptions()
 	opts.Length = 32
 
-	var s *salt.Salt
+	var s string
 
-	s, _ = salt.NewRandomSalt(opts)
-	secret = s.String()
+	s, _ = random.String(opts)
+	secret = s
 
-	s, _ = salt.NewRandomSalt(opts)
-	prefix = s.String()
+	s, _ = random.String(opts)
+	extra = s
 
-	sep = "-"
+	sep = "\x00"
 }
 
 type CrumbConfig struct {
-	Prefix    string
+	Extra     string
 	Separator string
 	Secret    string
 	TTL       int64
@@ -47,7 +47,7 @@ type CrumbConfig struct {
 func DefaultCrumbConfig() CrumbConfig {
 
 	cfg := CrumbConfig{
-		Prefix:    prefix,
+		Extra:     extra,
 		Separator: sep,
 		Secret:    secret,
 		TTL:       0,
@@ -150,7 +150,7 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, extra ...
 }
 
 func CrumbKey(cfg CrumbConfig, req *http.Request) string {
-	return fmt.Sprintf("%s-%s", cfg.Prefix, req.URL.Path)
+	return req.URL.Path
 }
 
 func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, error) {
@@ -161,7 +161,7 @@ func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, err
 
 	base = append(base, crumb_key)
 	base = append(base, req.UserAgent())
-	// base = append(base, req.RemoteAddr)
+	base = append(base, cfg.Extra)
 
 	for _, e := range extra {
 		base = append(base, e)
