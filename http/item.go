@@ -4,13 +4,14 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
-	_ "log"
+	"log"
 	gohttp "net/http"
 )
 
 type ItemVars struct {
 	PageTitle string
 	Item      *gofeed.Item
+	Feed      *gofeed.Feed
 	User      user.User
 }
 
@@ -61,9 +62,17 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			return
 		}
 
+		f, err := fr.GetFeedByItemGUID(str_guid)
+
+		if err != nil {
+			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
+			return
+		}
+
 		vars := ItemVars{
 			PageTitle: item.Title,
 			Item:      item,
+			Feed:      f,
 			User:      u,
 		}
 

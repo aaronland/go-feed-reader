@@ -256,7 +256,6 @@ func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
 	if err != nil {
 		log.Fatal()
 	}
-
 	return nil
 }
 
@@ -282,6 +281,34 @@ func (fr *FeedReader) RefreshFeeds() error {
 	}
 
 	return fr.ListFeedsAll(cb)
+}
+
+func (fr *FeedReader) GetFeedByLink(link string) (*gofeed.Feed, error) {
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	q := "SELECT body FROM feeds WHERE link = ?"
+	row := conn.QueryRow(q, link)
+
+	return DatabaseRowToFeed(row)
+}
+
+func (fr *FeedReader) GetFeedByItemGUID(guid string) (*gofeed.Feed, error) {
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil, err
+	}
+
+	q := "SELECT f.body FROM items i, feeds f WHERE f.link = i.feed AND i.guid = ?"
+	row := conn.QueryRow(q, guid)
+
+	return DatabaseRowToFeed(row)
 }
 
 func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {

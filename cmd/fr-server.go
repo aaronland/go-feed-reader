@@ -29,12 +29,6 @@ func main() {
 
 	go fr.RefreshFeeds()
 
-	crumb_handler, err := http.CrumbHandler(fr)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	index_handler, err := http.IndexHandler(fr)
 
 	if err != nil {
@@ -121,7 +115,15 @@ func main() {
 	mux.Handle("/signout", signout_handler)
 	mux.Handle("/signup", signup_handler)
 
-	mux.Handle("/crumb", crumb_handler)
+	/*
+		crumb_handler, err := http.CrumbHandler(fr)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		mux.Handle("/crumb", crumb_handler)
+	*/
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)

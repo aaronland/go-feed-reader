@@ -38,3 +38,23 @@ func DatabaseRowsToFeeds(rows *sql.Rows) ([]*gofeed.Feed, error) {
 
 	return feeds, nil
 }
+
+func DatabaseRowToFeed(row *sql.Row) (*gofeed.Feed, error) {
+
+	var body string
+	err := row.Scan(&body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var i gofeed.Feed
+
+	err = json.Unmarshal([]byte(body), &i)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &i, nil
+}
