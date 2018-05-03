@@ -3,7 +3,6 @@ package crumb
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -18,9 +17,8 @@ import (
 	"time"
 )
 
-var sep string = "-"
-var hmac_secret string
-var aes_secret string
+var sep string
+var secret string
 var prefix string
 
 func init() {
@@ -31,29 +29,28 @@ func init() {
 	var s *salt.Salt
 
 	s, _ = salt.NewRandomSalt(opts)
-	hmac_secret = s.String()
-
-	s, _ = salt.NewRandomSalt(opts)
-	aes_secret = s.String()
+	secret = s.String()
 
 	s, _ = salt.NewRandomSalt(opts)
 	prefix = s.String()
+
+	sep = "-"
 }
 
 type CrumbConfig struct {
-	Prefix     string
-	HMACSecret string
-	AESSecret  string
-	TTL        int64
+	Prefix    string
+	Separator string
+	Secret    string
+	TTL       int64
 }
 
 func DefaultCrumbConfig() CrumbConfig {
 
 	cfg := CrumbConfig{
-		Prefix:     prefix,
-		HMACSecret: hmac_secret,
-		AESSecret:  aes_secret,
-		TTL:        0,
+		Prefix:    prefix,
+		Separator: sep,
+		Secret:    secret,
+		TTL:       0,
 	}
 
 	return cfg
@@ -78,7 +75,12 @@ func GenerateCrumb(cfg CrumbConfig, req *http.Request, extra ...string) (string,
 
 	str_ts := strconv.FormatInt(ts, 10)
 
-	crumb_var := fmt.Sprintf("%s-%s", str_ts, crumb_hash)
+	crumb_parts := []string{
+		str_ts,
+		crumb_hash,
+	}
+
+	crumb_var := strings.Join(crumb_parts, cfg.Separator)
 
 	enc_var, err := EncryptCrumb(cfg, crumb_var)
 
@@ -97,7 +99,7 @@ func ValidateCrumb(cfg CrumbConfig, req *http.Request, enc_var string, extra ...
 		return false, err
 	}
 
-	crumb_parts := strings.Split(crumb_var, "-")
+	crumb_parts := strings.Split(crumb_var, cfg.Separator)
 
 	if len(crumb_parts) != 2 {
 		return false, errors.New("Invalid crumb")
@@ -171,28 +173,19 @@ func CrumbBase(cfg CrumbConfig, req *http.Request, extra ...string) (string, err
 
 func CompareHashes(this_enc string, that_enc string) (bool, error) {
 
-	this_hash, err := hex.DecodeString(this_enc)
-
-	if err != nil {
-		return false, err
+	if len(this_enc) != len(that_enc) {
+		return false, nil
 	}
 
-	that_hash, err := hex.DecodeString(that_enc)
-
-	if err != nil {
-		return false, err
-	}
-
-	match := hmac.Equal(this_hash, that_hash)
+	match := this_enc == that_enc
 	return match, nil
 }
 
 func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 
 	msg := []byte(raw)
-	key := []byte(cfg.HMACSecret)
 
-	mac := hmac.New(sha256.New, key)
+	mac := sha256.New()
 	mac.Write(msg)
 	hash := mac.Sum(nil)
 
@@ -206,7 +199,7 @@ func HashCrumb(cfg CrumbConfig, raw string) (string, error) {
 func EncryptCrumb(cfg CrumbConfig, text string) (string, error) {
 
 	plaintext := []byte(text)
-	secret := []byte(cfg.AESSecret)
+	secret := []byte(cfg.Secret)
 
 	block, err := aes.NewCipher(secret)
 
@@ -235,7 +228,7 @@ func DecryptCrumb(cfg CrumbConfig, enc_crumb string) (string, error) {
 		return "", err
 	}
 
-	secret := []byte(cfg.AESSecret)
+	secret := []byte(cfg.Secret)
 	block, err := aes.NewCipher(secret)
 
 	if err != nil {
