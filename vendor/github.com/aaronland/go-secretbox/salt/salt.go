@@ -85,14 +85,12 @@ func DefaultSaltOptions() *SaltOptions {
 func NewRandomSalt(opts *SaltOptions) (*Salt, error) {
 
 	count := len(runes)
-	
+
 	result := make([]string, 0)
 
 	var last string
 
-	b := 0
-	
-	for len(strings.Join(result, "")) < opts.Length {
+	for len(result) < opts.Length {
 
 		j := r.Intn(count)
 		r := runes[j]
@@ -102,17 +100,8 @@ func NewRandomSalt(opts *SaltOptions) (*Salt, error) {
 			continue
 		}
 
+		result = append(result, c)
 		last = c
-		
-		b += len(c)
-
-		if b <= opts.Length {
-		     result = append(result, c)
-		} else {
-
-		     result = result[0:len(result)-2]
-		     b = len(strings.Join(result, ""))
-		}
 	}
 
 	s := strings.Join(result, "")
