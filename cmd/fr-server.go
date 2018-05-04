@@ -27,7 +27,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go fr.RefreshFeeds()
+	// go fr.RefreshFeeds()
 
 	index_handler, err := http.IndexHandler(fr)
 
@@ -93,15 +93,17 @@ func main() {
 
 			log.Println("refresh feeds")
 
+			/*
 			err := fr.RefreshFeeds()
 
 			if err != nil {
 				log.Println(err)
 			}
+			*/				
 		}
 
 	}()
-
+	
 	mux := gohttp.NewServeMux()
 
 	mux.Handle("/", index_handler)
