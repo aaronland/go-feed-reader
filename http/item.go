@@ -4,7 +4,7 @@ import (
 	"github.com/aaronland/go-feed-reader"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
-	"log"
+	_ "log"
 	gohttp "net/http"
 )
 

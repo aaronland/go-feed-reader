@@ -12,6 +12,6 @@
       </blockquote>
       </div>
       <p>{{ $it.Link }} <a href="/item?guid={{ $it.GUID }}">permalink</a></p>
-      <p><a href="">{{ $it.Feed.Title }}</a></p>
+      <p><a href="/recent?feed={{ $.Feed.Link }}">{{ $.Feed.Title }}</a></p>
       </div>
 {{ end }}
