@@ -110,9 +110,7 @@ func AddHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 				return
 			}
 
-			// feed, err := fr.AddFeedForUser(user, feed_url)
-
-			feed, err := fr.AddFeed(feed_url)
+			feed, err := fr.AddFeedForUser(u, feed_url)
 
 			if err != nil {
 				gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

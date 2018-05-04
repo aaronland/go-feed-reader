@@ -59,7 +59,7 @@ func FeedsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			pg_opts.Page(page)
 		}
 
-		results, err := fr.ListFeeds(pg_opts)
+		results, err := fr.ListFeedsForUser(u, pg_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

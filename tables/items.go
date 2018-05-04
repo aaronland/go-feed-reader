@@ -3,6 +3,7 @@ package tables
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
@@ -16,9 +17,10 @@ type ItemsTable struct {
 
 // I don't like this...
 
-type ItemsRecord struct {
+type ItemRecord struct {
 	Feed *gofeed.Feed
 	Item *gofeed.Item
+	User user.User
 }
 
 func NewItemsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
@@ -81,7 +83,7 @@ func (t *ItemsTable) InitializeTable(db sqlite.Database) error {
 }
 
 func (t *ItemsTable) IndexRecord(db sqlite.Database, i interface{}) error {
-	rec := i.(*ItemsRecord) // I don't like this...
+	rec := i.(*ItemRecord) // I don't like this...
 	return t.IndexItem(db, rec.Feed, rec.Item)
 }
 

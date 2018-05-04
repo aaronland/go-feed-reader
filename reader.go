@@ -227,7 +227,7 @@ func (fr *FeedReader) AddUser(u user.User) error {
 
 // feed reader methods
 
-func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
+func (fr *FeedReader) AddFeedForUser(u user.User, feed_url string) (*gofeed.Feed, error) {
 
 	feed, err := fr.ParseFeedURL(feed_url)
 
@@ -235,7 +235,7 @@ func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
 		return nil, err
 	}
 
-	err = fr.IndexFeed(feed)
+	err = fr.IndexFeedForUser(u, feed)
 
 	if err != nil {
 		return nil, err
@@ -243,6 +243,8 @@ func (fr *FeedReader) AddFeed(feed_url string) (*gofeed.Feed, error) {
 
 	return feed, nil
 }
+
+// please ForUser() me...
 
 func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
 
@@ -259,7 +261,7 @@ func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
 	return nil
 }
 
-func (fr *FeedReader) RefreshFeeds() error {
+func (fr *FeedReader) RefreshFeeds(u user.User) error {
 
 	fr.mu.Lock()
 
@@ -271,7 +273,7 @@ func (fr *FeedReader) RefreshFeeds() error {
 
 	cb := func(feed *gofeed.Feed) error {
 
-		err := fr.RefreshFeed(feed)
+		err := fr.RefreshFeedForUser(u, feed)
 
 		if err != nil {
 			log.Println(feed, err)
@@ -283,7 +285,7 @@ func (fr *FeedReader) RefreshFeeds() error {
 	return fr.ListFeedsAll(cb)
 }
 
-func (fr *FeedReader) GetFeedByLink(link string) (*gofeed.Feed, error) {
+func (fr *FeedReader) GetFeedByLinkForUser(u user.User, link string) (*gofeed.Feed, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -297,7 +299,7 @@ func (fr *FeedReader) GetFeedByLink(link string) (*gofeed.Feed, error) {
 	return DatabaseRowToFeed(row)
 }
 
-func (fr *FeedReader) GetFeedByItemGUID(guid string) (*gofeed.Feed, error) {
+func (fr *FeedReader) GetFeedByItemGUIDForUser(u user.User, guid string) (*gofeed.Feed, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -311,7 +313,7 @@ func (fr *FeedReader) GetFeedByItemGUID(guid string) (*gofeed.Feed, error) {
 	return DatabaseRowToFeed(row)
 }
 
-func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {
+func (fr *FeedReader) GetItemByGUIDForUser(u user.User, guid string) (*gofeed.Item, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -325,7 +327,7 @@ func (fr *FeedReader) GetItemByGUID(guid string) (*gofeed.Item, error) {
 	return DatabaseRowToFeedItem(row)
 }
 
-func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
+func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -399,11 +401,11 @@ func (fr *FeedReader) Search(q string, opts pagination.PaginatedOptions) (*Items
 	return &r, nil
 }
 
-func (fr *FeedReader) RemoveFeed(f *gofeed.Feed) error {
+func (fr *FeedReader) RemoveFeedForUser(u user.User, f *gofeed.Feed) error {
 	return errors.New("Please write me")
 }
 
-func (fr *FeedReader) ListItems(ls_opts *ListItemsOptions, pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
+func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -487,7 +489,7 @@ func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 	return pagination.QueryPaginatedAll(conn, opts, cb, query)
 }
 
-func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginatedOptions) (*FeedsResponse, error) {
+func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.PaginatedOptions) (*FeedsResponse, error) {
 
 	conn, err := fr.database.Conn()
 
@@ -542,7 +544,7 @@ func (fr *FeedReader) ListFeeds(pg_opts pagination.PaginatedOptions) (*FeedsResp
 	return &r, nil
 }
 
-func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
+func (fr *FeedReader) RefreshFeedForUser(u user.User, feed *gofeed.Feed) error {
 
 	f2, err := fr.ParseFeedURL(feed.FeedLink)
 
@@ -550,7 +552,7 @@ func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 		return err
 	}
 
-	err = fr.IndexFeed(f2)
+	err = fr.IndexFeedForUser(u, f2)
 
 	if err != nil {
 		return err
@@ -572,12 +574,17 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 	return feed, nil
 }
 
-func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
+func (fr *FeedReader) IndexFeedForUser(u user.User, feed *gofeed.Feed) error {
 
 	items := feed.Items
 	feed.Items = nil
 
-	err := fr.feeds.IndexRecord(fr.database, feed)
+	rec := tables.FeedRecord{
+		Feed: feed,
+		User: u,
+	}
+
+	err := fr.feeds.IndexRecord(fr.database, rec)
 
 	if err != nil {
 		return err
@@ -585,9 +592,10 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 
 	for _, item := range items {
 
-		rec := tables.ItemsRecord{
+		rec := tables.ItemRecord{
 			Feed: feed,
 			Item: item,
+			User: u,
 		}
 
 		err = fr.items.IndexRecord(fr.database, &rec)

@@ -55,14 +55,14 @@ func ItemHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			}
 		*/
 
-		item, err := fr.GetItemByGUID(str_guid)
+		item, err := fr.GetItemByGUIDForUser(u, str_guid)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
 			return
 		}
 
-		f, err := fr.GetFeedByItemGUID(str_guid)
+		f, err := fr.GetFeedByItemGUIDForUser(u, str_guid)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)

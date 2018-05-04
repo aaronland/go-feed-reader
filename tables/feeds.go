@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/aaronland/go-feed-reader/user"	
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
@@ -14,6 +15,11 @@ import (
 type FeedsTable struct {
 	sqlite.Table
 	name string
+}
+
+type FeedRecord struct {
+	Feed *gofeed.Feed
+	User user.User
 }
 
 func NewFeedsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
@@ -69,7 +75,8 @@ func (t *FeedsTable) InitializeTable(db sqlite.Database) error {
 }
 
 func (t *FeedsTable) IndexRecord(db sqlite.Database, i interface{}) error {
-	return t.IndexFeed(db, i.(*gofeed.Feed))
+	rec := i.(*FeedRecord) // I don't like this...
+	return t.IndexFeed(db, rec.Feed)
 }
 
 func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {

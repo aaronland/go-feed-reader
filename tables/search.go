@@ -62,7 +62,7 @@ func (t *SearchTable) Schema() string {
 }
 
 func (t *SearchTable) IndexRecord(db sqlite.Database, i interface{}) error {
-	rec := i.(*ItemsRecord) // I don't like this...
+	rec := i.(*ItemRecord) // I don't like this...
 	return t.IndexItem(db, rec.Feed, rec.Item)
 }
 
