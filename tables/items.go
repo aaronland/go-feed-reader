@@ -3,7 +3,6 @@ package tables
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
@@ -20,7 +19,6 @@ type ItemsTable struct {
 type ItemRecord struct {
 	Feed *gofeed.Feed
 	Item *gofeed.Item
-	User user.User
 }
 
 func NewItemsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {

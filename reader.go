@@ -576,12 +576,28 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 
 func (fr *FeedReader) IndexFeedForUser(u user.User, feed *gofeed.Feed) error {
 
+     err := fr.IndexFeed(feed)
+
+     if err != nil {
+     	return err
+     }
+
+     uf := tables.UserFeed{
+     	Feed: feed,
+	Users: u,
+     }
+
+     err = fr.user_feeds.IndexRecord(fr.data, uf)
+     
+}
+
+func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
+
 	items := feed.Items
 	feed.Items = nil
 
 	rec := tables.FeedRecord{
 		Feed: feed,
-		User: u,
 	}
 
 	err := fr.feeds.IndexRecord(fr.database, rec)
@@ -595,7 +611,6 @@ func (fr *FeedReader) IndexFeedForUser(u user.User, feed *gofeed.Feed) error {
 		rec := tables.ItemRecord{
 			Feed: feed,
 			Item: item,
-			User: u,
 		}
 
 		err = fr.items.IndexRecord(fr.database, &rec)

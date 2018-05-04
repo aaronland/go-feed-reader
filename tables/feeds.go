@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
@@ -19,7 +18,6 @@ type FeedsTable struct {
 
 type FeedRecord struct {
 	Feed *gofeed.Feed
-	User user.User
 }
 
 func NewFeedsTableWithDatabase(db sqlite.Database) (sqlite.Table, error) {
