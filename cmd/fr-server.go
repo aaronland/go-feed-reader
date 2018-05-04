@@ -94,16 +94,16 @@ func main() {
 			log.Println("refresh feeds")
 
 			/*
-			err := fr.RefreshFeeds()
+				err := fr.RefreshFeeds()
 
-			if err != nil {
-				log.Println(err)
-			}
-			*/				
+				if err != nil {
+					log.Println(err)
+				}
+			*/
 		}
 
 	}()
-	
+
 	mux := gohttp.NewServeMux()
 
 	mux.Handle("/", index_handler)

@@ -56,6 +56,7 @@ func (t *ItemsTable) Name() string {
 func (t *ItemsTable) Schema() string {
 
 	sql := `CREATE TABLE %s (
+	    	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	    	feed TEXT NOT NULL,
 		guid TEXT NOT NULL,
 		link TEXT NOT NULL,
