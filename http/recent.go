@@ -85,7 +85,7 @@ func RecentItemsHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 			ls_opts.FeedURL = u.String()
 		}
 
-		q_rsp, err := fr.ListItems(ls_opts, pg_opts)
+		q_rsp, err := fr.ListItemsForUser(u, ls_opts, pg_opts)
 
 		if err != nil {
 			gohttp.Error(rsp, err.Error(), gohttp.StatusInternalServerError)
