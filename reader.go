@@ -26,6 +26,8 @@ type FeedReader struct {
 	items          sqlite.Table
 	search         sqlite.Table
 	users          sqlite.Table
+	user_feeds     sqlite.Table
+	user_items     sqlite.Table
 	ck_cfg         login.CookieConfig
 	mu             *sync.Mutex
 }
@@ -95,6 +97,18 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
+	uf, err := tables.NewUserFeedsTableWithDatabase(db)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ui, err := tables.NewUserItemsTableWithDatabase(db)
+
+	if err != nil {
+		return nil, err
+	}
+
 	ck_cfg, err := NewDefaultCookieConfig()
 
 	if err != nil {
@@ -104,13 +118,15 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	mu := new(sync.Mutex)
 
 	fr := FeedReader{
-		database: db,
-		feeds:    f,
-		items:    i,
-		search:   s,
-		users:    u,
-		mu:       mu,
-		ck_cfg:   ck_cfg,
+		database:   db,
+		feeds:      f,
+		items:      i,
+		search:     s,
+		users:      u,
+		user_feeds: uf,
+		user_items: ui,
+		mu:         mu,
+		ck_cfg:     ck_cfg,
 	}
 
 	return &fr, nil
@@ -261,7 +277,7 @@ func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
 	return nil
 }
 
-func (fr *FeedReader) RefreshFeeds(u user.User) error {
+func (fr *FeedReader) RefreshFeeds() error {
 
 	fr.mu.Lock()
 
@@ -273,7 +289,7 @@ func (fr *FeedReader) RefreshFeeds(u user.User) error {
 
 	cb := func(feed *gofeed.Feed) error {
 
-		err := fr.RefreshFeedForUser(u, feed)
+		err := fr.RefreshFeed(feed)
 
 		if err != nil {
 			log.Println(feed, err)
@@ -544,7 +560,7 @@ func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.Paginated
 	return &r, nil
 }
 
-func (fr *FeedReader) RefreshFeedForUser(u user.User, feed *gofeed.Feed) error {
+func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 
 	f2, err := fr.ParseFeedURL(feed.FeedLink)
 
@@ -552,11 +568,14 @@ func (fr *FeedReader) RefreshFeedForUser(u user.User, feed *gofeed.Feed) error {
 		return err
 	}
 
-	err = fr.IndexFeedForUser(u, f2)
+	err = fr.IndexFeed(f2)
 
 	if err != nil {
 		return err
 	}
+
+	// TO DO: FETCH ALL THE USERS SUBSCRIBED TO THIS FEED
+	// AND UPDATE THE UserItems TABLE
 
 	return nil
 }
@@ -576,19 +595,41 @@ func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
 
 func (fr *FeedReader) IndexFeedForUser(u user.User, feed *gofeed.Feed) error {
 
-     err := fr.IndexFeed(feed)
+	err := fr.IndexFeed(feed)
 
-     if err != nil {
-     	return err
-     }
+	if err != nil {
+		return err
+	}
 
-     uf := tables.UserFeed{
-     	Feed: feed,
-	Users: u,
-     }
+	uf := tables.UserFeed{
+		Feed: feed,
+		User: u,
+	}
 
-     err = fr.user_feeds.IndexRecord(fr.data, uf)
-     
+	err = fr.user_feeds.IndexRecord(fr.database, uf)
+
+	if err != nil {
+		return err
+	}
+
+	for _, item := range feed.Items {
+
+		ui := tables.UserItem{
+			User: u,
+			Feed: feed,
+			Item: item,
+		}
+
+		err := fr.user_items.IndexRecord(fr.database, &ui)
+
+		if err != nil {
+			return err
+		}
+
+		// something something search here...
+	}
+
+	return nil
 }
 
 func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
@@ -619,11 +660,6 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 			return err
 		}
 
-		err = fr.search.IndexRecord(fr.database, &rec)
-
-		if err != nil {
-			return err
-		}
 	}
 
 	return nil

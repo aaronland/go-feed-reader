@@ -1,15 +1,12 @@
 package tables
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
 	_ "log"
-	"time"
 )
 
 type UserFeedsTable struct {
@@ -73,7 +70,7 @@ func (t *UserFeedsTable) InitializeTable(db sqlite.Database) error {
 
 func (t *UserFeedsTable) IndexRecord(db sqlite.Database, i interface{}) error {
 	rec := i.(*UserFeed)
-	return t.IndexFeed(db, rec)
+	return t.IndexUserFeed(db, rec)
 }
 
 func (t *UserFeedsTable) IndexUserFeed(db sqlite.Database, f *UserFeed) error {
@@ -100,7 +97,7 @@ func (t *UserFeedsTable) IndexUserFeed(db sqlite.Database, f *UserFeed) error {
 
 	defer stmt.Close()
 
-	_, err = stmt.Exec(f.User.Id(), f.FeedLink)
+	_, err = stmt.Exec(f.User.Id(), f.Feed.Link)
 
 	if err != nil {
 		return err

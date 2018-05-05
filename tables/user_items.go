@@ -1,15 +1,12 @@
 package tables
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/mmcdole/gofeed"
 	"github.com/whosonfirst/go-whosonfirst-sqlite"
 	"github.com/whosonfirst/go-whosonfirst-sqlite/utils"
 	_ "log"
-	"time"
 )
 
 type UserItemsTable struct {
@@ -17,7 +14,7 @@ type UserItemsTable struct {
 	name string
 }
 
-type UserFeed struct {
+type UserItem struct {
 	Feed *gofeed.Feed
 	Item *gofeed.Item
 	User user.User
@@ -75,10 +72,10 @@ func (t *UserItemsTable) InitializeTable(db sqlite.Database) error {
 
 func (t *UserItemsTable) IndexRecord(db sqlite.Database, i interface{}) error {
 	rec := i.(*UserItem)
-	return t.IndexFeed(db, rec)
+	return t.IndexUserItem(db, rec)
 }
 
-func (t *UserItemsTable) IndexUserFeed(db sqlite.Database, f *UserItem) error {
+func (t *UserItemsTable) IndexUserItem(db sqlite.Database, f *UserItem) error {
 
 	conn, err := db.Conn()
 

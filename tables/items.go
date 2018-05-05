@@ -14,8 +14,6 @@ type ItemsTable struct {
 	name string
 }
 
-// I don't like this...
-
 type ItemRecord struct {
 	Feed *gofeed.Feed
 	Item *gofeed.Item
