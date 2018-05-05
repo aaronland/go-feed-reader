@@ -435,9 +435,12 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 	conditions := make([]string, 0)
 	args := make([]interface{}, 0)
 
+	conditions = append(conditions, "i.user_id=?")
+	args = append(args, u.Id())
+	
 	if ls_opts.FeedURL != "" {
 
-		conditions = append(conditions, "feed = ?")
+		conditions = append(conditions, "i.feed = ?")
 		args = append(args, ls_opts.FeedURL)
 	}
 
@@ -447,7 +450,7 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 		where = fmt.Sprintf("WHERE %s", strings.Join(conditions, " AND "))
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s %s ORDER BY published ASC, updated ASC", fr.items.Name(), where)
+	q := fmt.Sprintf("SELECT i.body FROM %s i, %s u %s ORDER BY i.published ASC, i.updated ASC", fr.items.Name(), fr.user_items.Name(), where)
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, args...)
 
@@ -513,9 +516,9 @@ func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.Paginated
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT body FROM %s ORDER BY updated DESC", fr.feeds.Name())
+	q := fmt.Sprintf("SELECT f.body FROM %s f, %s u WHERE u.user_id = ? AND u.feed_link = f.link ORDER BY f.updated DESC", fr.feeds.Name(), fr.user_feeds.Name())
 
-	rsp, err := pagination.QueryPaginated(conn, pg_opts, q)
+	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, u.Id())
 
 	if err != nil {
 		return nil, err
