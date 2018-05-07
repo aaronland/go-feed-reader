@@ -437,7 +437,7 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 
 	conditions = append(conditions, "i.user_id=?")
 	args = append(args, u.Id())
-	
+
 	if ls_opts.FeedURL != "" {
 
 		conditions = append(conditions, "i.feed = ?")
@@ -470,6 +470,51 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 	}
 
 	return &r, nil
+}
+
+func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return err
+	}
+
+	cb := func(r pagination.PaginatedResponse) error {
+
+		rows := r.Rows()
+
+		for rows.Next() {
+
+			var user_id string
+			err := rows.Scan(&user_id)
+
+			if err != nil {
+				return err
+			}
+
+			u, err := fr.GetUserById(user_id)
+
+			if err != nil {
+				return err
+			}
+
+			err = fr.IndexFeedForUser(u, f)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	query := fmt.Sprintf("SELECT user_id FROM %s WHERE feed=?")
+
+	opts := pagination.NewDefaultPaginatedOptions()
+	opts.PerPage(100)
+
+	return pagination.QueryPaginatedAll(conn, opts, cb, query, f.Link)
 }
 
 func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
@@ -577,8 +622,11 @@ func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 		return err
 	}
 
-	// TO DO: FETCH ALL THE USERS SUBSCRIBED TO THIS FEED
-	// AND UPDATE THE UserItems TABLE
+	err = fr.RefreshFeedForUsers(f2)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
