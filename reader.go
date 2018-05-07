@@ -260,9 +260,9 @@ func (fr *FeedReader) AddFeedForUser(u user.User, feed_url string) (*gofeed.Feed
 	return feed, nil
 }
 
-// please ForUser() me...
+// PLEASE ForUser ME
 
-func (fr *FeedReader) DumpFeeds(wr io.Writer) error {
+func (fr *FeedReader) DumpFeedsForUser(wr io.Writer) error {
 
 	cb := func(f *gofeed.Feed) error {
 		wr.Write([]byte(f.FeedLink + "\n"))
