@@ -259,14 +259,14 @@ func (fr *FeedReader) AddFeedForUser(u user.User, feed_url string) (*gofeed.Feed
 	return feed, nil
 }
 
-func (fr *FeedReader) DumpFeedsForUser(wr io.Writer) error {
+func (fr *FeedReader) DumpFeedsForUser(u user.User, wr io.Writer) error {
 
 	cb := func(f *gofeed.Feed) error {
 		wr.Write([]byte(f.FeedLink + "\n"))
 		return nil
 	}
 
-	err := fr.ListFeedsAll(cb)
+	err := fr.ListFeedsAllForUser(u, cb)
 
 	if err != nil {
 		log.Fatal()
@@ -306,9 +306,12 @@ func (fr *FeedReader) GetFeedByLinkForUser(u user.User, link string) (*gofeed.Fe
 		return nil, err
 	}
 
-	q := "SELECT body FROM feeds WHERE link = ?"
-	row := conn.QueryRow(q, link)
+	q := fmt.Sprintf(`SELECT f.body FROM %s f, %s uf
+		WHERE f.link = uf.feed_link
+		AND uf.feed_link = ?
+		AND uf.user_id = ?`, fr.feeds.Name(), fr.user_feeds.Name())
 
+	row := conn.QueryRow(q, link, u.Id())
 	return DatabaseRowToFeed(row)
 }
 
@@ -345,9 +348,10 @@ func (fr *FeedReader) GetItemByGUIDForUser(u user.User, guid string) (*gofeed.It
 		fr.items.Name(), fr.user_items.Name())
 
 	row := conn.QueryRow(q, guid, u.Id())
-
 	return DatabaseRowToFeedItem(row)
 }
+
+// PLEASE MAKE THIS WORK ON A PER-USER BASIS...
 
 func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
@@ -534,13 +538,17 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 		args = append(args, ls_opts.FeedURL)
 	}
 
-	where := ""
+	extra := ""
 
 	if len(conditions) > 0 {
-		where = fmt.Sprintf("WHERE %s", strings.Join(conditions, " AND "))
+		extra = fmt.Sprintf("AND %s", strings.Join(conditions, " AND "))
 	}
 
-	q := fmt.Sprintf("SELECT i.body FROM %s i, %s u %s ORDER BY i.published ASC, i.updated ASC", fr.items.Name(), fr.user_items.Name(), where)
+	q := fmt.Sprintf(`SELECT i.body FROM %s i, %s u
+	  	WHERE i.guid = u.item_guid
+	  	%s
+	  	ORDER BY i.published ASC, i.updated ASC`,
+		fr.items.Name(), fr.user_items.Name(), extra)
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, args...)
 
@@ -607,7 +615,49 @@ func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
 	return pagination.QueryPaginatedAll(conn, opts, cb, query, f.Link)
 }
 
+func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Feed) error) error {
+
+	// Please reconcile this with ListFeedsAll below...
+
+	cb := func(r pagination.PaginatedResponse) error {
+
+		feeds, err := DatabaseRowsToFeeds(r.Rows())
+
+		if err != nil {
+			return err
+		}
+
+		for _, feed := range feeds {
+
+			err := feed_cb(feed)
+
+			if err != nil {
+				log.Println(feed, err)
+			}
+		}
+
+		return nil
+	}
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`SELECT f.* FROM %s f, %s uf
+       	  WHERE f.link = uf.feed_link
+       	  AND uf.user_id = ?`, fr.feeds.Name(), fr.user_feeds.Name())
+
+	opts := pagination.NewDefaultPaginatedOptions()
+	opts.PerPage(100)
+
+	return pagination.QueryPaginatedAll(conn, opts, cb, query)
+}
+
 func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
+
+	// Please reconcile this with ListFeedsAllForUser above
 
 	cb := func(r pagination.PaginatedResponse) error {
 
@@ -651,7 +701,9 @@ func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.Paginated
 		return nil, err
 	}
 
-	q := fmt.Sprintf("SELECT f.body FROM %s f, %s u WHERE u.user_id = ? AND u.feed_link = f.link ORDER BY f.updated DESC", fr.feeds.Name(), fr.user_feeds.Name())
+	q := fmt.Sprintf(`SELECT f.body FROM %s f, %s u
+	  	WHERE u.user_id = ? AND u.feed_link = f.link
+		ORDER BY f.updated DESC`, fr.feeds.Name(), fr.user_feeds.Name())
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, u.Id())
 
