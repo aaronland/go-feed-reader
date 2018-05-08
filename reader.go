@@ -3,7 +3,6 @@ package reader
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/aaronland/go-feed-reader/login"
 	"github.com/aaronland/go-feed-reader/password"
@@ -260,8 +259,6 @@ func (fr *FeedReader) AddFeedForUser(u user.User, feed_url string) (*gofeed.Feed
 	return feed, nil
 }
 
-// PLEASE ForUser ME
-
 func (fr *FeedReader) DumpFeedsForUser(wr io.Writer) error {
 
 	cb := func(f *gofeed.Feed) error {
@@ -323,9 +320,13 @@ func (fr *FeedReader) GetFeedByItemGUIDForUser(u user.User, guid string) (*gofee
 		return nil, err
 	}
 
-	q := "SELECT f.body FROM items i, feeds f WHERE f.link = i.feed AND i.guid = ?"
-	row := conn.QueryRow(q, guid)
+	q := fmt.Sprintf(`SELECT f.body FROM %s f, %s i
+	  	WHERE f.link = i.feed_link
+		AND i.item_guid = ?
+		AND i.user_id = ?`,
+		fr.feeds.Name(), fr.user_items.Name())
 
+	row := conn.QueryRow(q, guid, u.Id())
 	return DatabaseRowToFeed(row)
 }
 
@@ -337,8 +338,13 @@ func (fr *FeedReader) GetItemByGUIDForUser(u user.User, guid string) (*gofeed.It
 		return nil, err
 	}
 
-	q := "SELECT body FROM items WHERE guid = ?"
-	row := conn.QueryRow(q, guid)
+	q := fmt.Sprintf(`SELECT body FROM %s i, %s ui
+	  	WHERE i.guid = ui.guid
+		AND ui.guid = ?
+		AND ui.user_id = ?`,
+		fr.items.Name(), fr.user_items.Name())
+
+	row := conn.QueryRow(q, guid, u.Id())
 
 	return DatabaseRowToFeedItem(row)
 }
@@ -418,7 +424,91 @@ func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.Pagin
 }
 
 func (fr *FeedReader) RemoveFeedForUser(u user.User, f *gofeed.Feed) error {
-	return errors.New("Please write me")
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return err
+	}
+
+	tx, err := conn.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	sql_items := fmt.Sprintf("DELETE FROM %s WHERE user_id = ? AND feed_link = ?", fr.user_items.Name())
+	sql_feeds := fmt.Sprintf("DELETE FROM %s WHERE user_id = ? AND link  = ?", fr.user_feeds.Name())
+
+	queries := []string{
+		sql_items,
+		sql_feeds,
+	}
+
+	for _, q := range queries {
+
+		_, err := conn.Exec(q, u.Id(), f.Link)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (fr *FeedReader) PruneFeed(f *gofeed.Feed) error {
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return err
+	}
+
+	sql_count := fmt.Sprintf("SELECT COUNT(id) FROM %s WHERE feed_link = ?", fr.user_feeds.Name())
+	row, err := conn.Query(sql_count, f.Link)
+
+	if err != nil {
+		return err
+	}
+
+	var count int32
+	err = row.Scan(&count)
+
+	if err != nil {
+		return err
+	}
+
+	tx, err := conn.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+
+		sql_items := fmt.Sprintf("DELETE FROM %s WHERE feed_link = ?", fr.items.Name())
+		sql_feeds := fmt.Sprintf("DELETE FROM %s WHERE link = ?", fr.feeds.Name())
+
+		queries := []string{
+			sql_feeds,
+			sql_items,
+		}
+
+		for _, q := range queries {
+
+			_, err := conn.Exec(q, f.Link)
+
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+
+	}
+
+	return tx.Commit()
 }
 
 func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, pg_opts pagination.PaginatedOptions) (*ItemsResponse, error) {
