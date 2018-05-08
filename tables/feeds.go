@@ -53,7 +53,7 @@ func (t *FeedsTable) Name() string {
 func (t *FeedsTable) Schema() string {
 
 	sql := `CREATE TABLE %s (
-	    	id INTEGET PRIMARY KEY AUTOINCREMENT,
+	    	id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
 		link TEXT NOT NULL,
 		feed_link TEXT NULL,		     
@@ -62,7 +62,7 @@ func (t *FeedsTable) Schema() string {
 		updated INTEGER
 	);
 
-	CREATE INDEX %s_by_published ON %s (user_id, published, updated);
+	CREATE INDEX %s_by_published ON %s (published, updated);
 	`
 
 	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name(), t.Name())
