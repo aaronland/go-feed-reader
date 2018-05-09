@@ -111,7 +111,7 @@ func main() {
 	mux.Handle("/add", add_handler)
 	mux.Handle("/recent", recent_handler)
 
-	mux.Handle("/signin", signin_handler)
+	mux.Handle(fr.SigninURL(), signin_handler)
 	mux.Handle("/signout", signout_handler)
 	mux.Handle("/signup", signup_handler)
 

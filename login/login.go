@@ -14,7 +14,6 @@ type Provider interface {
 	user.UserDB
 	SigninURL() string
 	CookieConfig() CookieConfig
-	// CrumbConfig() crumb.CookieConfig
 }
 
 type CookieConfig interface {

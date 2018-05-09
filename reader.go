@@ -171,10 +171,6 @@ func (fr *FeedReader) SigninURL() string {
 	return "/signin"
 }
 
-func (fr *FeedReader) CookieSecret() string {
-	return "***"
-}
-
 // user.User methods
 
 func (fr *FeedReader) GetUserById(id string) (user.User, error) {
