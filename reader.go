@@ -351,8 +351,6 @@ func (fr *FeedReader) GetItemByGUIDForUser(u user.User, guid string) (*gofeed.It
 	return DatabaseRowToFeedItem(row)
 }
 
-// PLEASE MAKE THIS WORK ON A PER-USER BASIS...
-
 func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.PaginatedOptions) (*ItemsResponse, error) {
 
 	conn, err := fr.database.Conn()
@@ -363,16 +361,19 @@ func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.Pagin
 
 	// https://www.sqlite.org/fts5.html
 
-	query := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
+	query := fmt.Sprintf(`SELECT s.feed, s.guid FROM %s s, %s uf
+	      WHERE uf.feed_link = s.feed
+	      AND uf.user_id = ?
+	      AND %s MATCH ?
+	      ORDER BY rank`, fr.search.Name(), fr.user_feeds.Name(), fr.search.Name())
 
-	rsp, err := pagination.QueryPaginated(conn, opts, query, q)
+	rsp, err := pagination.QueryPaginated(conn, opts, query, u.Id(), q)
 
 	if err != nil {
 		return nil, err
 	}
 
 	guids := make([][]string, 0)
-
 	rows := rsp.Rows()
 	pg := rsp.Pagination()
 
@@ -405,9 +406,12 @@ func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.Pagin
 		feed := g[0]
 		guid := g[1]
 
-		query := fmt.Sprintf("SELECT body FROM %s WHERE feed = ? AND guid = ?", fr.items.Name())
+		query := fmt.Sprintf(`SELECT i.body FROM %s i, %s ui
+			WHERE i.guid == ui.item_guid
+			AND ui.user_id = ?
+			AND ui.feed = ? AND ui.guid = ?`, fr.items.Name(), fr.user_items.Name())
 
-		row := conn.QueryRow(query, feed, guid)
+		row := conn.QueryRow(query, u.Id(), feed, guid)
 		item, err := DatabaseRowToFeedItem(row)
 
 		if err != nil {
@@ -492,10 +496,12 @@ func (fr *FeedReader) PruneFeed(f *gofeed.Feed) error {
 
 		sql_items := fmt.Sprintf("DELETE FROM %s WHERE feed_link = ?", fr.items.Name())
 		sql_feeds := fmt.Sprintf("DELETE FROM %s WHERE link = ?", fr.feeds.Name())
-
+		sql_search := fmt.Sprintf("DELETE FROM %s WHERE feed = ?", fr.search.Name())
+		
 		queries := []string{
 			sql_feeds,
 			sql_items,
+			sql_search,
 		}
 
 		for _, q := range queries {
@@ -540,10 +546,9 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 	}
 
 	q := fmt.Sprintf(`SELECT i.body FROM %s i, %s ui
-	  	WHERE i.guid = ui.item_guid
+		WHERE i.guid = ui.item_guid
 	  	%s
-	  	ORDER BY i.published ASC, i.updated ASC`,
-		fr.items.Name(), fr.user_items.Name(), extra)
+	  	ORDER BY i.published ASC, i.updated ASC`, fr.items.Name(), fr.user_items.Name(), extra)
 
 	rsp, err := pagination.QueryPaginated(conn, pg_opts, q, args...)
 
@@ -613,8 +618,8 @@ func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
 func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Feed) error) error {
 
 	query := fmt.Sprintf(`SELECT f.* FROM %s f, %s uf
-       	  WHERE f.link = uf.feed_link
-       	  AND uf.user_id = ?`, fr.feeds.Name(), fr.user_feeds.Name())
+		WHERE f.link = uf.feed_link
+		AND uf.user_id = ?`, fr.feeds.Name(), fr.user_feeds.Name())
 
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
