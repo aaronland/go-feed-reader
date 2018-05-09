@@ -75,42 +75,36 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	f, err := tables.NewFeedsTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("feeds", err)
 		return nil, err
 	}
 
 	i, err := tables.NewItemsTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("items", err)
 		return nil, err
 	}
 
 	s, err := tables.NewSearchTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("search", err)
 		return nil, err
 	}
 
 	u, err := tables.NewUsersTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("users", err)
 		return nil, err
 	}
 
 	uf, err := tables.NewUserFeedsTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("user feeds", err)
 		return nil, err
 	}
 
 	ui, err := tables.NewUserItemsTableWithDatabase(db)
 
 	if err != nil {
-		log.Println("user items", err)
 		return nil, err
 	}
 
@@ -371,8 +365,6 @@ func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.Pagin
 
 	query := fmt.Sprintf("SELECT feed, guid FROM %s WHERE %s MATCH ? ORDER BY rank", fr.search.Name(), fr.search.Name())
 
-	log.Println("SEARCH", query, q)
-
 	rsp, err := pagination.QueryPaginated(conn, opts, query, q)
 
 	if err != nil {
@@ -529,13 +521,10 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 		return nil, err
 	}
 
-	// add "WHERE read=0" toggle
-	// add "WHERE feed=..." toggle
-
 	conditions := make([]string, 0)
 	args := make([]interface{}, 0)
 
-	conditions = append(conditions, "i.user_id=?")
+	conditions = append(conditions, "ui.user_id=?")
 	args = append(args, u.Id())
 
 	if ls_opts.FeedURL != "" {
@@ -550,8 +539,8 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 		extra = fmt.Sprintf("AND %s", strings.Join(conditions, " AND "))
 	}
 
-	q := fmt.Sprintf(`SELECT i.body FROM %s i, %s u
-	  	WHERE i.guid = u.item_guid
+	q := fmt.Sprintf(`SELECT i.body FROM %s i, %s ui
+	  	WHERE i.guid = ui.item_guid
 	  	%s
 	  	ORDER BY i.published ASC, i.updated ASC`,
 		fr.items.Name(), fr.user_items.Name(), extra)
