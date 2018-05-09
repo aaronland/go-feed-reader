@@ -54,13 +54,13 @@ func (t *UserFeedsTable) Schema() string {
 	sql := `CREATE TABLE %s (
 	    	id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id TEXT NOT NULL,
-		feed_link TEXT NULL,		     
-	);
+		feed_link TEXT NULL
+		);
 
 	CREATE UNIQUE INDEX %s_unq_feed ON %s (user_id, feed_link);
 	`
 
-	return fmt.Sprintf(sql, t.Name(), t.Name())
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name())
 }
 
 func (t *UserFeedsTable) InitializeTable(db sqlite.Database) error {

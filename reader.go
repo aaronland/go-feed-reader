@@ -75,36 +75,42 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	f, err := tables.NewFeedsTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("feeds", err)
 		return nil, err
 	}
 
 	i, err := tables.NewItemsTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("items", err)
 		return nil, err
 	}
 
 	s, err := tables.NewSearchTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("search", err)
 		return nil, err
 	}
 
 	u, err := tables.NewUsersTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("users", err)
 		return nil, err
 	}
 
 	uf, err := tables.NewUserFeedsTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("user feeds", err)
 		return nil, err
 	}
 
 	ui, err := tables.NewUserItemsTableWithDatabase(db)
 
 	if err != nil {
+		log.Println("user items", err)
 		return nil, err
 	}
 

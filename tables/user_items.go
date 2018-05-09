@@ -56,13 +56,13 @@ func (t *UserItemsTable) Schema() string {
 	    	id INTEGER PRIMARY KEY AUTOINCREMENT,
 		user_id TEXT NOT NULL,
 		feed_link TEXT NULL,
-		item_guid TEXT NULL,
-	);
+		item_guid TEXT NULL
+		);
 
 	CREATE UNIQUE INDEX %s_unq_item ON %s (user_id, feed_link, item_guid);
 	`
 
-	return fmt.Sprintf(sql, t.Name(), t.Name())
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name())
 }
 
 func (t *UserItemsTable) InitializeTable(db sqlite.Database) error {

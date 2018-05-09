@@ -65,7 +65,7 @@ func (t *FeedsTable) Schema() string {
 	CREATE INDEX %s_by_published ON %s (published, updated);
 	`
 
-	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name(), t.Name())
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name())
 }
 
 func (t *FeedsTable) InitializeTable(db sqlite.Database) error {
