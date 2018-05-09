@@ -612,34 +612,6 @@ func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
 
 func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Feed) error) error {
 
-	// Please reconcile this with ListFeedsAll below...
-
-	cb := func(r pagination.PaginatedResponse) error {
-
-		feeds, err := DatabaseRowsToFeeds(r.Rows())
-
-		if err != nil {
-			return err
-		}
-
-		for _, feed := range feeds {
-
-			err := feed_cb(feed)
-
-			if err != nil {
-				log.Println(feed, err)
-			}
-		}
-
-		return nil
-	}
-
-	conn, err := fr.database.Conn()
-
-	if err != nil {
-		return err
-	}
-
 	query := fmt.Sprintf(`SELECT f.* FROM %s f, %s uf
        	  WHERE f.link = uf.feed_link
        	  AND uf.user_id = ?`, fr.feeds.Name(), fr.user_feeds.Name())
@@ -647,49 +619,17 @@ func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Fe
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
 
-	return pagination.QueryPaginatedAll(conn, opts, cb, query)
+	return fr.listFeedsAll(opts, feed_cb, query, u.Id())
 }
 
 func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 
-	// Please reconcile this with ListFeedsAllForUser above
-
-	/*
-	cb := func(r pagination.PaginatedResponse) error {
-
-		feeds, err := DatabaseRowsToFeeds(r.Rows())
-
-		if err != nil {
-			return err
-		}
-
-		for _, feed := range feeds {
-
-			err := feed_cb(feed)
-
-			if err != nil {
-				log.Println(feed, err)
-			}
-		}
-
-		return nil
-	}
-
-	conn, err := fr.database.Conn()
-
-	if err != nil {
-		return err
-	}
-	*/
-	
 	query := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
 
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
 
 	return fr.listFeedsAll(opts, feed_cb, query)
-	
-	// return pagination.QueryPaginatedAll(conn, opts, cb, query)
 }
 
 func (fr *FeedReader) listFeedsAll(opts pagination.PaginatedOptions, feed_cb func(f *gofeed.Feed) error, query string, args ...interface{}) error {
@@ -701,7 +641,7 @@ func (fr *FeedReader) listFeedsAll(opts pagination.PaginatedOptions, feed_cb fun
 		if err != nil {
 			return err
 		}
-		
+
 		for _, feed := range feeds {
 
 			err := feed_cb(feed)
