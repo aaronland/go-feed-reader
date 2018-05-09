@@ -654,6 +654,7 @@ func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 
 	// Please reconcile this with ListFeedsAllForUser above
 
+	/*
 	cb := func(r pagination.PaginatedResponse) error {
 
 		feeds, err := DatabaseRowsToFeeds(r.Rows())
@@ -679,13 +680,47 @@ func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 	if err != nil {
 		return err
 	}
-
+	*/
+	
 	query := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
 
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
 
-	return pagination.QueryPaginatedAll(conn, opts, cb, query)
+	return fr.listFeedsAll(opts, feed_cb, query)
+	
+	// return pagination.QueryPaginatedAll(conn, opts, cb, query)
+}
+
+func (fr *FeedReader) listFeedsAll(opts pagination.PaginatedOptions, feed_cb func(f *gofeed.Feed) error, query string, args ...interface{}) error {
+
+	cb := func(r pagination.PaginatedResponse) error {
+
+		feeds, err := DatabaseRowsToFeeds(r.Rows())
+
+		if err != nil {
+			return err
+		}
+		
+		for _, feed := range feeds {
+
+			err := feed_cb(feed)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	conn, err := fr.database.Conn()
+
+	if err != nil {
+		return nil
+	}
+
+	return pagination.QueryPaginatedAll(conn, opts, cb, query, args...)
 }
 
 func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.PaginatedOptions) (*FeedsResponse, error) {
