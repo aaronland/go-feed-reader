@@ -104,6 +104,10 @@ func (t *FeedsTable) IndexFeed(db sqlite.Database, f *gofeed.Feed) error {
 
 	tx, err := conn.Begin()
 
+	if err != nil {
+		return err
+	}
+
 	sql := fmt.Sprintf(`INSERT OR REPLACE INTO %s (
 		title, link, feed_link, body, published, updated
 	) VALUES (

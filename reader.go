@@ -402,7 +402,10 @@ func (fr *FeedReader) SearchForUser(u user.User, q string, opts pagination.Pagin
 	}
 
 	guids := make([][]string, 0)
+
 	rows := rsp.Rows()
+	defer rows.Close()
+
 	pg := rsp.Pagination()
 
 	for rows.Next() {
@@ -584,7 +587,10 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 		return nil, err
 	}
 
-	items, err := DatabaseRowsToFeedItems(rsp.Rows())
+	rows := rsp.Rows()
+	defer rows.Close()
+
+	items, err := DatabaseRowsToFeedItems(rows)
 
 	if err != nil {
 		return nil, err
@@ -609,6 +615,7 @@ func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
 	cb := func(r pagination.PaginatedResponse) error {
 
 		rows := r.Rows()
+		defer rows.Close()
 
 		for rows.Next() {
 
@@ -669,7 +676,10 @@ func (fr *FeedReader) listFeedsAll(opts pagination.PaginatedOptions, feed_cb fun
 
 	cb := func(r pagination.PaginatedResponse) error {
 
-		feeds, err := DatabaseRowsToFeeds(r.Rows())
+		rows := r.Rows()
+		defer rows.Close()
+
+		feeds, err := DatabaseRowsToFeeds(rows)
 
 		if err != nil {
 			return err
@@ -715,6 +725,8 @@ func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.Paginated
 	}
 
 	rows := rsp.Rows()
+	defer rows.Close()
+
 	pg := rsp.Pagination()
 
 	feeds := make([]*gofeed.Feed, 0)
