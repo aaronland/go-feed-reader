@@ -108,23 +108,19 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
-	/*
-		ck_cfg, err := NewFRCookieConfig()
+	ck_cfg, err := NewFRCookieConfig()
 
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		url_cfg, err := NewFRURLConfig()
+	url_cfg, err := login.NewDefaultURLConfig()
 
-		if err != nil {
-			return nil, err
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		cfg, err := NewFRConfig(ck_cfg, url_cfg)
-	*/
-
-	cfg, err := login.NewDefaultConfig()
+	cfg, err := NewFRConfig(ck_cfg, url_cfg)
 
 	if err != nil {
 		return nil, err
@@ -806,7 +802,7 @@ func (fr *FeedReader) IndexFeedForUser(u user.User, feed *gofeed.Feed) error {
 		User: u,
 	}
 
-	err = fr.user_feeds.IndexRecord(fr.database, uf)
+	err = fr.user_feeds.IndexRecord(fr.database, &uf)
 
 	if err != nil {
 		return err
@@ -841,7 +837,7 @@ func (fr *FeedReader) IndexFeed(feed *gofeed.Feed) error {
 		Feed: feed,
 	}
 
-	err := fr.feeds.IndexRecord(fr.database, rec)
+	err := fr.feeds.IndexRecord(fr.database, &rec)
 
 	if err != nil {
 		return err

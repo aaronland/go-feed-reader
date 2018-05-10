@@ -60,7 +60,7 @@ func (c *DefaultURLConfig) SignoutURL() string {
 }
 
 func (c *DefaultURLConfig) SignupURL() string {
-	return c.signout
+	return c.signup
 }
 
 type DefaultCookieConfig struct {
