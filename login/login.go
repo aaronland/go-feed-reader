@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aaronland/go-feed-reader/user"
 	"github.com/aaronland/go-secretbox"
+	"github.com/aaronland/go-string/random"
 	_ "log"
 	"net/http"
 	"strings"
@@ -12,14 +13,134 @@ import (
 
 type Provider interface {
 	user.UserDB
+	Config() Config
+}
+
+type Config interface {
+	Cookie() CookieConfig
+	URL() URLConfig
+}
+
+type URLConfig interface {
 	SigninURL() string
-	CookieConfig() CookieConfig
+	SignupURL() string
+	SignoutURL() string
 }
 
 type CookieConfig interface {
 	Salt() string
 	Secret() string
 	Name() string
+}
+
+func NewDefaultURLConfig() (URLConfig, error) {
+
+	cfg := DefaultURLConfig{
+		signin:  "/signin",
+		signout: "/signout",
+		signup:  "/signup",
+	}
+
+	return &cfg, nil
+}
+
+type DefaultURLConfig struct {
+	URLConfig
+	signin  string
+	signout string
+	signup  string
+}
+
+func (c *DefaultURLConfig) SigninURL() string {
+	return c.signin
+}
+
+func (c *DefaultURLConfig) SignoutURL() string {
+	return c.signout
+}
+
+func (c *DefaultURLConfig) SignupURL() string {
+	return c.signout
+}
+
+type DefaultCookieConfig struct {
+	CookieConfig
+	name   string
+	salt   string
+	secret string
+}
+
+func (c *DefaultCookieConfig) Name() string {
+	return c.name
+}
+
+func (c *DefaultCookieConfig) Salt() string {
+	return c.salt
+}
+
+func (c *DefaultCookieConfig) Secret() string {
+	return c.secret
+}
+
+func NewDefaultCookieConfig() (CookieConfig, error) {
+
+	rand_opts := random.DefaultOptions()
+	rand_opts.ASCII = true
+
+	var s string
+
+	s, _ = random.String(rand_opts)
+	name := s
+
+	s, _ = random.String(rand_opts)
+	salt := s
+
+	s, _ = random.String(rand_opts)
+	secret := s
+
+	cfg := DefaultCookieConfig{
+		name:   name,
+		salt:   salt,
+		secret: secret,
+	}
+
+	return &cfg, nil
+}
+
+type DefaultConfig struct {
+	Config
+	cookie CookieConfig
+	url    URLConfig
+}
+
+func (c *DefaultConfig) Cookie() CookieConfig {
+	return c.cookie
+}
+
+func (c *DefaultConfig) URL() URLConfig {
+	return c.url
+}
+
+func NewDefaultConfig() (Config, error) {
+
+	c, err := NewDefaultCookieConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
+	u, err := NewDefaultURLConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := DefaultConfig{
+		cookie: c,
+		url:    u,
+	}
+
+	return &cfg, nil
 }
 
 func IsLoggedIn(pr Provider, req *http.Request) bool {
@@ -68,18 +189,19 @@ func GetLoggedIn(pr Provider, req *http.Request) (user.User, error) {
 
 func GetLoginCookie(pr Provider, req *http.Request) (string, error) {
 
-	cfg := pr.CookieConfig()
+	cfg := pr.Config()
+	ck_cfg := cfg.Cookie()
 
-	cookie, err := req.Cookie(cfg.Name())
+	cookie, err := req.Cookie(ck_cfg.Name())
 
 	if err != nil {
 		return "", err
 	}
 
 	opts := secretbox.NewSecretboxOptions()
-	opts.Salt = cfg.Salt()
+	opts.Salt = ck_cfg.Salt()
 
-	sb, err := secretbox.NewSecretbox(cfg.Secret(), opts)
+	sb, err := secretbox.NewSecretbox(ck_cfg.Secret(), opts)
 
 	if err != nil {
 		return "", err
@@ -101,12 +223,13 @@ func SetLoginCookie(pr Provider, rsp http.ResponseWriter, u user.User) error {
 	pswd := u.Password()
 	body := fmt.Sprintf("%s:%s", u.Id(), pswd.Digest())
 
-	cfg := pr.CookieConfig()
+	cfg := pr.Config()
+	ck_cfg := cfg.Cookie()
 
 	opts := secretbox.NewSecretboxOptions()
-	opts.Salt = cfg.Salt()
+	opts.Salt = ck_cfg.Salt()
 
-	sb, err := secretbox.NewSecretbox(cfg.Secret(), opts)
+	sb, err := secretbox.NewSecretbox(ck_cfg.Secret(), opts)
 
 	if err != nil {
 		return err
@@ -119,7 +242,7 @@ func SetLoginCookie(pr Provider, rsp http.ResponseWriter, u user.User) error {
 	}
 
 	cookie := http.Cookie{
-		Name:  cfg.Name(),
+		Name:  ck_cfg.Name(),
 		Value: string(enc),
 	}
 
@@ -129,10 +252,11 @@ func SetLoginCookie(pr Provider, rsp http.ResponseWriter, u user.User) error {
 
 func DeleteLoginCookie(pr Provider, rsp http.ResponseWriter) error {
 
-	cfg := pr.CookieConfig()
+	cfg := pr.Config()
+	ck_cfg := cfg.Cookie()
 
 	cookie := http.Cookie{
-		Name:   cfg.Name(),
+		Name:   ck_cfg.Name(),
 		Value:  "",
 		MaxAge: -1,
 	}

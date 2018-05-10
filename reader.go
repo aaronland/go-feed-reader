@@ -27,7 +27,7 @@ type FeedReader struct {
 	users          sqlite.Table
 	user_feeds     sqlite.Table
 	user_items     sqlite.Table
-	ck_cfg         login.CookieConfig
+	cfg            login.Config
 	mu             *sync.Mutex
 }
 
@@ -108,8 +108,24 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		return nil, err
 	}
 
-	ck_cfg, err := NewDefaultCookieConfig()
+	/*
+	ck_cfg, err := NewFRCookieConfig()
 
+	if err != nil {
+		return nil, err
+	}
+
+	url_cfg, err := NewFRURLConfig()
+
+	if err != nil {
+		return nil, err
+	}
+
+	cfg, err := NewFRConfig(ck_cfg, url_cfg)
+	*/
+
+	cfg, err := login.NewDefaultConfig()
+	
 	if err != nil {
 		return nil, err
 	}
@@ -125,34 +141,58 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 		user_feeds: uf,
 		user_items: ui,
 		mu:         mu,
-		ck_cfg:     ck_cfg,
+		cfg:        cfg,
 	}
 
 	return &fr, nil
 }
 
-type DefaultCookieConfig struct {
+type FRConfig struct {
+	login.Config
+	cookie login.CookieConfig
+	url    login.URLConfig
+}
+
+func (c *FRConfig) Cookie() login.CookieConfig {
+	return c.cookie
+}
+
+func (c *FRConfig) URL() login.URLConfig {
+	return c.url
+}
+
+type FRCookieConfig struct {
 	login.CookieConfig
 	salt   string
 	secret string
 	name   string
 }
 
-func (c *DefaultCookieConfig) Salt() string {
+func (c *FRCookieConfig) Salt() string {
 	return c.salt
 }
 
-func (c *DefaultCookieConfig) Secret() string {
+func (c *FRCookieConfig) Secret() string {
 	return c.secret
 }
 
-func (c *DefaultCookieConfig) Name() string {
+func (c *FRCookieConfig) Name() string {
 	return c.name
 }
 
-func NewDefaultCookieConfig() (login.CookieConfig, error) {
+func NewFRConfig(ck_cfg login.CookieConfig, url_cfg login.URLConfig) (login.Config, error) {
 
-	cfg := DefaultCookieConfig{
+	cfg := FRConfig{
+		cookie: ck_cfg,
+		url:    url_cfg,
+	}
+
+	return &cfg, nil
+}
+
+func NewFRCookieConfig() (login.CookieConfig, error) {
+
+	cfg := FRCookieConfig{
 		salt:   "salty",  // PLEASE FIX ME
 		secret: "cookie", // PLEASE FIX ME
 		name:   "fr",     // PLEASE FIX ME
@@ -161,14 +201,21 @@ func NewDefaultCookieConfig() (login.CookieConfig, error) {
 	return &cfg, nil
 }
 
-// login.Provider methods
+func NewFRURLConfig() (login.URLConfig, error) {
 
-func (fr *FeedReader) CookieConfig() login.CookieConfig {
-	return fr.ck_cfg
+	cfg := FRURLConfig{
+		signin:  "/signin",
+		signup:  "/signup",
+		signout: "/signout",
+	}
+
+	return &cfg, nil
 }
 
-func (fr *FeedReader) SigninURL() string {
-	return "/signin"
+// login.Provider methods
+
+func (fr *FeedReader) Config() login.Config {
+	return fr.cfg
 }
 
 // user.User methods
@@ -493,7 +540,7 @@ func (fr *FeedReader) PruneFeed(f *gofeed.Feed) error {
 		sql_items := fmt.Sprintf("DELETE FROM %s WHERE feed_link = ?", fr.items.Name())
 		sql_feeds := fmt.Sprintf("DELETE FROM %s WHERE link = ?", fr.feeds.Name())
 		sql_search := fmt.Sprintf("DELETE FROM %s WHERE feed = ?", fr.search.Name())
-		
+
 		queries := []string{
 			sql_feeds,
 			sql_items,
