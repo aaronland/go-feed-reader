@@ -111,9 +111,12 @@ func main() {
 	mux.Handle("/add", add_handler)
 	mux.Handle("/recent", recent_handler)
 
-	mux.Handle(fr.SigninURL(), signin_handler)
-	mux.Handle("/signout", signout_handler)
-	mux.Handle("/signup", signup_handler)
+	cfg := fr.Config()
+	u := cfg.URL()
+
+	mux.Handle(u.SigninURL(), signin_handler)
+	mux.Handle(u.SignoutURL(), signout_handler)
+	mux.Handle(u.SignupURL(), signup_handler)
 
 	/*
 		crumb_handler, err := http.CrumbHandler(fr)

@@ -109,23 +109,23 @@ func NewFeedReader(dsn string) (*FeedReader, error) {
 	}
 
 	/*
-	ck_cfg, err := NewFRCookieConfig()
+		ck_cfg, err := NewFRCookieConfig()
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 
-	url_cfg, err := NewFRURLConfig()
+		url_cfg, err := NewFRURLConfig()
 
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 
-	cfg, err := NewFRConfig(ck_cfg, url_cfg)
+		cfg, err := NewFRConfig(ck_cfg, url_cfg)
 	*/
 
 	cfg, err := login.NewDefaultConfig()
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -196,17 +196,6 @@ func NewFRCookieConfig() (login.CookieConfig, error) {
 		salt:   "salty",  // PLEASE FIX ME
 		secret: "cookie", // PLEASE FIX ME
 		name:   "fr",     // PLEASE FIX ME
-	}
-
-	return &cfg, nil
-}
-
-func NewFRURLConfig() (login.URLConfig, error) {
-
-	cfg := FRURLConfig{
-		signin:  "/signin",
-		signup:  "/signup",
-		signout: "/signout",
 	}
 
 	return &cfg, nil

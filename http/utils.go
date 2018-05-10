@@ -24,14 +24,22 @@ func EnsureLoggedIn(pr login.Provider, rsp gohttp.ResponseWriter, req *gohttp.Re
 	u, err := login.GetLoggedIn(pr, req)
 
 	if user.IsNotExist(err) {
-		gohttp.Redirect(rsp, req, pr.SigninURL(), 303)
+
+		cfg := pr.Config()
+		u := cfg.URL()
+
+		gohttp.Redirect(rsp, req, u.SigninURL(), 303)
 		return nil
 	}
 
 	if err != nil {
 
 		if err == gohttp.ErrNoCookie {
-			gohttp.Redirect(rsp, req, pr.SigninURL(), 303)
+
+			cfg := pr.Config()
+			u := cfg.URL()
+
+			gohttp.Redirect(rsp, req, u.SigninURL(), 303)
 			return nil
 		}
 
