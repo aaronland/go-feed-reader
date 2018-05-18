@@ -4,7 +4,6 @@
 <id>{{ .Id }}</id>
 <updated>{{ .Updated }}</updated>
 <link href="{{ .Link }}" rel="self" type="application/atom+xml"></link>
-<icon>{{ .Icon }}</icon>
 <author>
     <name>{{ .Author.Name }}</name>
     <uri>{{ .Author.URI }}</uri>

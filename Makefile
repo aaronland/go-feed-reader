@@ -33,6 +33,8 @@ deps:
 	@GOPATH=$(GOPATH) go get -u "github.com/whosonfirst/go-whosonfirst-sqlite"
 	@GOPATH=$(GOPATH) go get -u "github.com/grokify/html-strip-tags-go"
 	@GOPATH=$(GOPATH) go get -u "github.com/patrickmn/go-hmaccrypt"
+	@GOPATH=$(GOPATH) go get -u "github.com/Pallinder/go-randomdata"
+
 	rm -rf src/github.com/zendesk/go-bindata/testdata
 
 vendor-deps: rmdeps deps
