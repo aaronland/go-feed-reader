@@ -59,7 +59,7 @@ assets: self
 	rm -rf templates/*/*~
 	rm -rf assets
 	mkdir -p assets/html
-	@GOPATH=$(GOPATH) bin/go-bindata -pkg html -o assets/html/html.go templates/html
+	@GOPATH=$(GOPATH) bin/go-bindata -pkg html -o assets/html/html.go templates/html templates/atom
 
 bin: 	self
 	rm -rf bin/*

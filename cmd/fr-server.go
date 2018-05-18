@@ -18,6 +18,7 @@ func main() {
 
 	var dsn = flag.String("dsn", ":memory:", "")
 	var refresh = flag.Int("refresh", 15, "")
+	var debug = flag.Bool("debug", false, "")
 
 	flag.Parse()
 
@@ -127,6 +128,17 @@ func main() {
 
 		mux.Handle("/crumb", crumb_handler)
 	*/
+
+	if *debug {
+
+		debug_handler, err := http.DebugHandler(fr)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		mux.Handle("/debug", debug_handler)
+	}
 
 	endpoint := fmt.Sprintf("%s:%d", *host, *port)
 	log.Printf("Listening on %s\n", endpoint)

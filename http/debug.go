@@ -1,10 +1,13 @@
 package http
 
 import (
+	"fmt"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/aaronland/go-feed-reader"
 	_ "log"
 	gohttp "net/http"
+	"strings"
+	"time"
 )
 
 type Feed struct {
@@ -35,13 +38,19 @@ type DebugVars struct {
 	Feed Feed
 }
 
-func entry() Entry {
+func entry(req *gohttp.Request) Entry {
 
-	dt := randomdata.FullDate()
+	now := time.Now()
+	dt := now.Format(time.RFC3339)
+	ts := now.Unix()
+
+	title := randomdata.SillyName()
+	id := strings.ToLower(title)
 
 	e := Entry{
-		Id:        "",
-		Title:     randomdata.SillyName(),
+		Id:        fmt.Sprintf("x-urn-debug-%d#%s", ts, id),
+		Link:      fmt.Sprintf("//%s/debug#%s", req.Host, id),
+		Title:     title,
 		Published: dt,
 		Updated:   dt,
 		Content:   randomdata.Paragraph(),
@@ -68,21 +77,23 @@ func DebugHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 
 		for len(entries) < 15 {
 
-			e := entry()
+			e := entry(req)
 			entries = append(entries, e)
 		}
 
 		author := Author{
 			Name: randomdata.FullName(randomdata.RandomGender),
-			URI:  "",
+			URI:  fmt.Sprintf("//%s", req.Host),
 		}
 
+		ts := time.Now()
+
 		f := Feed{
-			Title:    "",
-			Subtitle: "",
-			Id:       "",
-			Updated:  "",
-			Link:     "",
+			Title:    randomdata.SillyName(),
+			Subtitle: randomdata.SillyName(),
+			Id:       fmt.Sprintf("//%s/debug", req.Host),
+			Updated:  ts.Format(time.RFC3339),
+			Link:     fmt.Sprintf("//%s/debug", req.Host),
 			Author:   author,
 			Entries:  entries,
 		}
@@ -90,6 +101,8 @@ func DebugHandler(fr *reader.FeedReader) (gohttp.Handler, error) {
 		vars := DebugVars{
 			Feed: f,
 		}
+
+		rsp.Header().Set("Content-Type", "application/atom+xml;charset=utf-8")
 
 		err = t.Execute(rsp, vars)
 

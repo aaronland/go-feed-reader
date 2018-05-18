@@ -1,15 +1,15 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-<title>{{ .Title }}</title>
-<subtitle>{{ .Subtitle }}</subtitle>
-<id>{{ .Id }}</id>
-<updated>{{ .Updated }}</updated>
-<link href="{{ .Link }}" rel="self" type="application/atom+xml"></link>
+<title>{{ .Feed.Title }}</title>
+<subtitle>{{ .Feed.Subtitle }}</subtitle>
+<id>{{ .Feed.Id }}</id>
+<updated>{{ .Feed.Updated }}</updated>
+<link href="{{ .Feed.Link }}" rel="self" type="application/atom+xml"></link>
 <author>
-    <name>{{ .Author.Name }}</name>
-    <uri>{{ .Author.URI }}</uri>
+    <name>{{ .Feed.Author.Name }}</name>
+    <uri>{{ .Feed.Author.URI }}</uri>
 </author>
 
-{{ range $i, $e .= .Entries }}
+{{ range $i, $e := .Feed.Entries }}
 
 <entry>
   <id>{{ $e.Id }}</id>
