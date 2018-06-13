@@ -28,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	go fr.RefreshFeeds()
+	// go fr.RefreshFeeds()
 
 	index_handler, err := http.IndexHandler(fr)
 

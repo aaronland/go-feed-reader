@@ -96,7 +96,7 @@ func templatesHtmlInc_crumbHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_crumb.html", size: 204, mode: os.FileMode(420), modTime: time.Unix(1525137210, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_crumb.html", size: 204, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -116,12 +116,12 @@ func templatesHtmlInc_feed_formHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_feed_form.html", size: 219, mode: os.FileMode(420), modTime: time.Unix(1523452980, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_feed_form.html", size: 219, mode: os.FileMode(420), modTime: time.Unix(1523571777, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
 
-var _templatesHtmlInc_feedsHtml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8f\xbf\xce\xc2\x30\x0c\xc4\xf7\xef\x29\x4e\x55\x87\x0f\x09\x35\x3b\x4a\xc3\xc6\xc4\xc0\x00\x0f\x10\x88\x43\x2d\x4c\x84\xfa\x67\x8a\xfc\xee\x28\x0d\x42\x6c\xf6\xef\x4e\xe7\x33\x00\xd8\x45\xdc\x5f\x19\x72\xc6\xe8\xd3\x9d\xd0\xf2\x16\x6d\xc4\xae\x47\x77\x20\x0a\x13\x54\x57\x83\x15\x76\xd6\x63\x18\x29\xf6\x8d\x19\xe9\x46\x69\xde\x47\xa2\xd0\xe7\x8c\x36\x76\x47\x4e\x0f\xa8\x36\xae\xae\x67\x9e\x85\xa0\x6a\x8d\x77\xb0\xd3\xd3\x8b\x7c\x94\xcb\x2b\xf8\x99\x02\x54\xcb\x51\x8e\x85\x9d\x96\xab\xf0\x34\xac\xf4\xbf\xda\x7e\xd1\x26\x67\x50\x0a\x6b\x5c\x8d\xb2\x46\xf8\x5b\xbc\x4a\xb5\xa5\x29\x0f\xbd\x03\x00\x00\xff\xff\xd6\xfd\x39\x06\xda\x00\x00\x00")
+var _templatesHtmlInc_feedsHtml = []byte("\x1f\x8b\x08\x00\x00\x00\x00\x00\x00\xff\x4c\x8f\xbd\x8e\xc2\x30\x10\x84\xfb\x7b\x8a\x51\x94\xe2\x4e\x3a\xc5\x3d\x72\x4c\x47\x45\x41\x01\x0f\x60\xf0\x3a\x59\xb1\x58\x28\x3f\x95\xb5\xef\x8e\x1c\x23\x44\xb7\xfb\xcd\x68\x76\x16\x00\xec\x2a\xee\xa7\x0c\x39\x63\xf2\x69\x20\xb4\xfc\x8f\x36\x62\xd7\xa3\x3b\x10\x85\x19\xaa\x9b\xc1\x0a\x3b\xeb\x31\x4e\x14\xfb\xc6\x4c\x74\xa3\xb4\xec\x87\x95\x43\x9f\x33\xda\xd8\x1d\x39\xdd\xa1\xda\xb8\xba\x9e\x79\x11\x82\xaa\x35\xde\xc1\xce\x0f\x2f\xf2\x56\x2e\xcf\xe0\x17\x0a\x50\x2d\x47\x39\x16\x76\x5a\xaf\xc2\xf3\xb8\xd1\xdf\x6a\xfb\x46\x7f\x39\x83\x52\xd8\xe2\x6a\x94\x35\xc2\x9f\xe2\x55\xaa\x2d\x4d\x79\xe8\x15\x00\x00\xff\xff\x2a\x54\x16\xf9\xda\x00\x00\x00")
 
 func templatesHtmlInc_feedsHtmlBytes() ([]byte, error) {
 	return bindataRead(
@@ -136,7 +136,7 @@ func templatesHtmlInc_feedsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_feeds.html", size: 218, mode: os.FileMode(420), modTime: time.Unix(1525393501, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_feeds.html", size: 218, mode: os.FileMode(420), modTime: time.Unix(1528909870, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -156,7 +156,7 @@ func templatesHtmlInc_footHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_foot.html", size: 48, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_foot.html", size: 48, mode: os.FileMode(420), modTime: time.Unix(1523571777, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -176,7 +176,7 @@ func templatesHtmlInc_headHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_head.html", size: 768, mode: os.FileMode(420), modTime: time.Unix(1525393900, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_head.html", size: 768, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -196,7 +196,7 @@ func templatesHtmlInc_indexHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_index.html", size: 225, mode: os.FileMode(420), modTime: time.Unix(1524843887, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_index.html", size: 225, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -216,7 +216,7 @@ func templatesHtmlInc_itemHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_item.html", size: 578, mode: os.FileMode(420), modTime: time.Unix(1525393792, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_item.html", size: 578, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -236,7 +236,7 @@ func templatesHtmlInc_itemsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_items.html", size: 514, mode: os.FileMode(420), modTime: time.Unix(1523926080, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_items.html", size: 514, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -256,7 +256,7 @@ func templatesHtmlInc_paginationHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_pagination.html", size: 613, mode: os.FileMode(420), modTime: time.Unix(1523537961, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_pagination.html", size: 613, mode: os.FileMode(420), modTime: time.Unix(1523571777, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -276,7 +276,7 @@ func templatesHtmlInc_search_resultsHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_search_results.html", size: 51, mode: os.FileMode(420), modTime: time.Unix(1523137083, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_search_results.html", size: 51, mode: os.FileMode(420), modTime: time.Unix(1523571777, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -296,7 +296,7 @@ func templatesHtmlInc_signin_formHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_signin_form.html", size: 447, mode: os.FileMode(420), modTime: time.Unix(1524274335, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_signin_form.html", size: 447, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -316,7 +316,7 @@ func templatesHtmlInc_signout_formHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_signout_form.html", size: 225, mode: os.FileMode(420), modTime: time.Unix(1524584777, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_signout_form.html", size: 225, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -336,7 +336,7 @@ func templatesHtmlInc_signup_formHtml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/html/inc_signup_form.html", size: 556, mode: os.FileMode(420), modTime: time.Unix(1524274380, 0)}
+	info := bindataFileInfo{name: "templates/html/inc_signup_form.html", size: 556, mode: os.FileMode(420), modTime: time.Unix(1525993512, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -356,7 +356,7 @@ func templatesAtomDebugXml() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "templates/atom/debug.xml", size: 701, mode: os.FileMode(420), modTime: time.Unix(1526623400, 0)}
+	info := bindataFileInfo{name: "templates/atom/debug.xml", size: 701, mode: os.FileMode(420), modTime: time.Unix(1527808381, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

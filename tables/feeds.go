@@ -63,9 +63,10 @@ func (t *FeedsTable) Schema() string {
 	);
 
 	CREATE INDEX %s_by_published ON %s (published, updated);
+	CREATE UNIQUE INDEX %s_feed_link ON %s (feed_link);
 	`
 
-	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name())
+	return fmt.Sprintf(sql, t.Name(), t.Name(), t.Name(), t.Name(), t.Name())
 }
 
 func (t *FeedsTable) InitializeTable(db sqlite.Database) error {
