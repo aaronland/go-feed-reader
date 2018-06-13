@@ -1,12 +1,15 @@
 HTML StripTags for Go
 =====================
 
-[![Go Report Card][goreport-svg]][goreport-link]
+[![Used By][used-by-svg]][used-by-link]
 [![Build Status][build-status-svg]][build-status-link]
+[![Go Report Card][goreport-svg]][goreport-link]
 [![Docs][docs-godoc-svg]][docs-godoc-link]
 [![License][license-svg]][license-link]
 
 This is a Go package containing an extracted version of the unexported `stripTags` function in `html/template/html.go`.
+
+:warning: This package does not protect against untrusted input. Please use [bluemonday](https://github.com/microcosm-cc/bluemonday) if you have untrusted data :warning:
 
 ## Background
 
@@ -33,6 +36,8 @@ func main() {
 }
 ```
 
+ [used-by-svg]: https://sourcegraph.com/github.com/grokify/html-strip-tags-go/-/badge.svg
+ [used-by-link]: https://sourcegraph.com/github.com/grokify/html-strip-tags-go?badge
  [goreport-svg]: https://goreportcard.com/badge/github.com/grokify/html-strip-tags-go
  [goreport-link]: https://goreportcard.com/report/github.com/grokify/html-strip-tags-go
  [build-status-svg]: https://api.travis-ci.org/grokify/html-strip-tags-go.svg?branch=master

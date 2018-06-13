@@ -228,7 +228,7 @@ func (fr *FeedReader) getUser(col string, ref string) (user.User, error) {
 		return nil, err
 	}
 
-	query := fmt.Sprintf("SELECT * FROM %s WHERE `%s` = ?", fr.users.Name(), col)
+	query := fmt.Sprintf("SELECT id, name, email, password FROM %s WHERE `%s` = ?", fr.users.Name(), col)
 	row := conn.QueryRow(query, ref)
 
 	var id string
@@ -300,30 +300,6 @@ func (fr *FeedReader) DumpFeedsForUser(u user.User, wr io.Writer) error {
 		log.Fatal()
 	}
 	return nil
-}
-
-func (fr *FeedReader) RefreshFeeds() error {
-
-	fr.mu.Lock()
-
-	defer func() {
-		fr.mu.Unlock()
-	}()
-
-	// check last update here...
-
-	cb := func(feed *gofeed.Feed) error {
-
-		err := fr.RefreshFeed(feed)
-
-		if err != nil {
-			log.Println(feed, err)
-		}
-
-		return nil
-	}
-
-	return fr.ListFeedsAll(cb)
 }
 
 func (fr *FeedReader) GetFeedByLinkForUser(u user.User, link string) (*gofeed.Feed, error) {
@@ -604,52 +580,6 @@ func (fr *FeedReader) ListItemsForUser(u user.User, ls_opts *ListItemsOptions, p
 	return &r, nil
 }
 
-func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
-
-	conn, err := fr.database.Conn()
-
-	if err != nil {
-		return err
-	}
-
-	cb := func(r pagination.PaginatedResponse) error {
-
-		rows := r.Rows()
-		defer rows.Close()
-
-		for rows.Next() {
-
-			var user_id string
-			err := rows.Scan(&user_id)
-
-			if err != nil {
-				return err
-			}
-
-			u, err := fr.GetUserById(user_id)
-
-			if err != nil {
-				return err
-			}
-
-			err = fr.IndexFeedForUser(u, f)
-
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	query := fmt.Sprintf("SELECT user_id FROM %s WHERE feed=?")
-
-	opts := pagination.NewDefaultPaginatedOptions()
-	opts.PerPage(100)
-
-	return pagination.QueryPaginatedAll(conn, opts, cb, query, f.Link)
-}
-
 func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Feed) error) error {
 
 	query := fmt.Sprintf(`SELECT f.* FROM %s f, %s uf
@@ -664,7 +594,8 @@ func (fr *FeedReader) ListFeedsAllForUser(u user.User, feed_cb func(f *gofeed.Fe
 
 func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 
-	query := fmt.Sprintf("SELECT * FROM %s", fr.feeds.Name())
+	query := fmt.Sprintf("SELECT body FROM %s", fr.feeds.Name())
+	log.Println("QUERY", query)
 
 	opts := pagination.NewDefaultPaginatedOptions()
 	opts.PerPage(100)
@@ -673,6 +604,8 @@ func (fr *FeedReader) ListFeedsAll(feed_cb func(f *gofeed.Feed) error) error {
 }
 
 func (fr *FeedReader) listFeedsAll(opts pagination.PaginatedOptions, feed_cb func(f *gofeed.Feed) error, query string, args ...interface{}) error {
+
+	log.Println("LIST FEEDS ALL...", query)
 
 	cb := func(r pagination.PaginatedResponse) error {
 
@@ -765,6 +698,35 @@ func (fr *FeedReader) ListFeedsForUser(u user.User, pg_opts pagination.Paginated
 	return &r, nil
 }
 
+func (fr *FeedReader) RefreshFeeds() error {
+
+	log.Println("REFRESHING...")
+
+	fr.mu.Lock()
+
+	defer func() {
+		fr.mu.Unlock()
+	}()
+
+	// check last update here...
+
+	cb := func(feed *gofeed.Feed) error {
+
+		log.Println("REFRESH FEED")
+
+		err := fr.RefreshFeed(feed)
+
+		if err != nil {
+			log.Println("REFRESH FEED ERROR", err)
+			return err
+		}
+
+		return nil
+	}
+
+	return fr.ListFeedsAll(cb)
+}
+
 func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 
 	f2, err := fr.ParseFeedURL(feed.FeedLink)
@@ -779,13 +741,71 @@ func (fr *FeedReader) RefreshFeed(feed *gofeed.Feed) error {
 		return err
 	}
 
+	log.Println("REFRESH FOR USERS")
 	err = fr.RefreshFeedForUsers(f2)
+
+	if err != nil {
+		log.Println("FUUUUUU")
+		return err
+	}
+
+	return nil
+}
+
+func (fr *FeedReader) RefreshFeedForUsers(f *gofeed.Feed) error {
+
+	log.Println("REFRESH FOR USERS")
+
+	conn, err := fr.database.Conn()
 
 	if err != nil {
 		return err
 	}
 
-	return nil
+	cb := func(r pagination.PaginatedResponse) error {
+
+		log.Println("REFRESH FOR USERS PAGINATED RESPONSE")
+
+		rows := r.Rows()
+		defer rows.Close()
+
+		for rows.Next() {
+
+			log.Println("NEXT")
+			var user_id string
+			err := rows.Scan(&user_id)
+
+			if err != nil {
+				log.Println("NEXT ERROR", err)
+				return err
+			}
+
+			u, err := fr.GetUserById(user_id)
+
+			if err != nil {
+				log.Println("NEXT USER ERROR", err, user_id)
+				return err
+			}
+
+			log.Println("INDEX FEED FOR USER")
+			err = fr.IndexFeedForUser(u, f)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		log.Println("NEXT DONE")
+		return nil
+	}
+
+	query := fmt.Sprintf("SELECT user_id FROM %s WHERE feed_link=?", fr.user_feeds.Name())
+	log.Println("QUERY", query)
+
+	opts := pagination.NewDefaultPaginatedOptions()
+	opts.PerPage(100)
+
+	return pagination.QueryPaginatedAll(conn, opts, cb, query, f.Link)
 }
 
 func (fr *FeedReader) ParseFeedURL(feed_url string) (*gofeed.Feed, error) {
